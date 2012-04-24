@@ -1,0 +1,169 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Shared Memory Logging and Statistics &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="The Varnish Reference Manual" href="index.html" />
+    <link rel="next" title="VMOD - Varnish Modules" href="vmod.html" />
+    <link rel="prev" title="varnishtop" href="varnishtop.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vmod.html" title="VMOD - Varnish Modules"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="varnishtop.html" title="varnishtop"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="shared-memory-logging-and-statistics">
+<h1>Shared Memory Logging and Statistics<a class="headerlink" href="#shared-memory-logging-and-statistics" title="Permalink to this headline">¶</a></h1>
+<p>Varnish uses shared memory for logging and statistics, because it
+is faster and much more efficient.  But it is also tricky in ways
+a regular logfile is not.</p>
+<p>When you open a file in &quot;append&quot; mode, the operating system guarantees
+that whatever you write will not overwrite existing data in the file.
+The neat result of this is that multiple procesess or threads writing
+to the same file does not even need to know about each other, it all
+works just as you would expect.</p>
+<p>With a shared memory log, we get no help from the kernel, the writers
+need to make sure they do not stomp on each other, and they need to
+make it possible and safe for the readers to access the data.</p>
+<p>The &quot;CS101&quot; way, is to introduce locks, and much time is spent examining
+the relative merits of the many kinds of locks available.</p>
+<p>Inside the varnishd (worker) process, we use mutexes to guarantee
+consistency, both with respect to allocations, log entries and stats
+counters.</p>
+<p>We do not want a varnishncsa trying to push data through a stalled
+ssh connection to stall the delivery of content, so readers like
+that are purely read-only, they do not get to affect the varnishd
+process and that means no locks for them.</p>
+<p>Instead we use &quot;stable storage&quot; concepts, to make sure the view
+seen by the readers is consistent at all times.</p>
+<p>As long as you only add stuff, that is trivial, but taking away
+stuff, such as when a backend is taken out of the configuration,
+we need to give the readers a chance to discover this, a &quot;cooling
+off&quot; period.</p>
+<p>When Varnishd starts, if it finds an existing shared memory file,
+and it can safely read the master_pid field, it will check if that
+process is running, and if so, fail with an error message, indicating
+that -n arguments collide.</p>
+<p>In all other cases, it will delete and create a new shmlog file,
+in order to provide running readers a cooling off period, where
+they can discover that there is a new shmlog file, by doing a
+stat(2) call and checking the st_dev &amp; st_inode fields.</p>
+<div class="section" id="allocations">
+<h2>Allocations<a class="headerlink" href="#allocations" title="Permalink to this headline">¶</a></h2>
+<p>Sections inside the shared memory file are allocated dynamically,
+for instance when a new backend is added.</p>
+<p>While changes happen to the linked list of allocations, the &quot;alloc_seq&quot;
+header field is zero, and after the change, it gets a value different
+from what it had before.</p>
+</div>
+<div class="section" id="deallocations">
+<h2>Deallocations<a class="headerlink" href="#deallocations" title="Permalink to this headline">¶</a></h2>
+<p>When a section is freed, its class will change to &quot;Cool&quot; for at
+least 10 seconds, giving programs using it time to detect the
+change in alloc_seq header field and/or the change of class.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Shared Memory Logging and Statistics</a><ul>
+<li><a class="reference internal" href="#allocations">Allocations</a></li>
+<li><a class="reference internal" href="#deallocations">Deallocations</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="varnishtop.html"
+                        title="previous chapter">varnishtop</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="vmod.html"
+                        title="next chapter">VMOD - Varnish Modules</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/reference/shmem.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vmod.html" title="VMOD - Varnish Modules"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="varnishtop.html" title="varnishtop"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

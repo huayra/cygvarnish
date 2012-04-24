@@ -1,0 +1,149 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>HTTP &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Frequently asked questions" href="index.html" />
+    <link rel="next" title="Configuration" href="configuration.html" />
+    <link rel="prev" title="General questions" href="general.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="configuration.html" title="Configuration"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="general.html" title="General questions"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Frequently asked questions</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="http">
+<h1>HTTP<a class="headerlink" href="#http" title="Permalink to this headline">¶</a></h1>
+<p><strong>What is the purpose of the X-Varnish HTTP header?</strong></p>
+<p>The X-Varnish HTTP header allows you to find the correct log-entries for the transaction. For a cache hit, X-Varnish will contain both the ID of the current request and the ID of the request that populated the cache. It makes debugging Varnish a lot easier.</p>
+<p><strong>Does Varnish support compression?</strong></p>
+<p>This is a simple question with a complicated answer; see <a class="reference external" href="http://varnish-cache.org/wiki/FAQ/Compression">WIKI</a>.</p>
+<p><strong>How do I add a HTTP header?</strong></p>
+<p>To add a HTTP header, unless you want to add something about the client/request, it is best done in vcl_fetch as this means it will only be processed every time the object is fetched:</p>
+<div class="highlight-python"><pre>sub vcl_fetch {
+  # Add a unique header containing the cache servers IP address:
+  remove beresp.http.X-Varnish-IP;
+  set    beresp.http.X-Varnish-IP = server.ip;
+  # Another header:
+  set    beresp.http.Foo = "bar";
+}</pre>
+</div>
+<p><strong>How can I log the client IP address on the backend?</strong></p>
+<p>All I see is the IP address of the varnish server.  How can I log the client IP address?</p>
+<p>We will need to add the IP address to a header used for the backend request, and configure the backend to log the content of this header instead of the address of the connecting client (which is the varnish server).</p>
+<p>Varnish configuration:</p>
+<div class="highlight-python"><pre>sub vcl_recv {
+  # Add a unique header containing the client address
+  remove req.http.X-Forwarded-For;
+  set    req.http.X-Forwarded-For = client.ip;
+  # [...]
+}</pre>
+</div>
+<p>For the apache configuration, we copy the &quot;combined&quot; log format to a new one we call &quot;varnishcombined&quot;, for instance, and change the client IP field to use the content of the variable we set in the varnish configuration:</p>
+<div class="highlight-python"><pre>LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %&gt;s %b \"%{Referer}i\" \"%{User-Agent}i\"" varnishcombined</pre>
+</div>
+<p>And so, in our virtualhost, you need to specify this format instead of &quot;combined&quot; (or &quot;common&quot;, or whatever else you use):</p>
+<div class="highlight-python"><pre>&lt;VirtualHost *:80&gt;
+  ServerName www.example.com
+  # [...]
+  CustomLog /var/log/apache2/www.example.com/access.log varnishcombined
+  # [...]
+&lt;/VirtualHost&gt;</pre>
+</div>
+<p>The [<a class="reference external" href="http://www.openinfo.co.uk/apache/index.html">http://www.openinfo.co.uk/apache/index.html</a> mod_extract_forwarded Apache module] might also be useful.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="general.html"
+                        title="previous chapter">General questions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="configuration.html"
+                        title="next chapter">Configuration</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/faq/http.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="configuration.html" title="Configuration"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="general.html" title="General questions"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Frequently asked questions</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

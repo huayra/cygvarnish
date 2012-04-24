@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 2.1.5</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 2.1.5</h1>
+    <h2>Changes between 2.1.4 and 2.1.5</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>On pass from vcl_recv, we did not remove the backends Content-Length
+      header before adding our own. This could cause confusion for
+      browsers and has been fixed.</p>
+      </li>
+      <li>
+        <p>Make pass with content-length work again. An issue with regards
+      to 304, Content-Length and pass has been resolved.</p>
+      </li>
+      <li>
+        <p>An issue relating to passed requests with If-Modified-Since
+      headers has been fixed. Varnish did not recognize that the
+      304-response did not have a body.</p>
+      </li>
+      <li>
+        <p>A potential lock-inversion with the ban lurker thread has been
+      resolved.</p>
+      </li>
+      <li>
+        <p>Several build-dependency issues relating to rst2man have been
+      fixed. Varnish should now build from source without rst2man if you
+      are using tar-balls.</p>
+      </li>
+      <li>
+        <p>Ensure Varnish reads the expected last CRLF after chunked data
+      from the backend. This allows re-use of the connection.</p>
+      </li>
+      <li>
+        <p>Remove a GNU Make-ism during <span class="code">make dist</span> to make BSD
+      happier.</p>
+      </li>
+      <li>
+        <p>Document the log, set, unset, return and restart statements in
+      the VCL documentation.</p>
+      </li>
+      <li>
+        <p>Fix an embarrassingly old bug where Varnish would run out of
+      workspace when requests come in fast over a single connection,
+      typically during synthetic benchmarks.</p>
+      </li>
+      <li>
+        <p>Varnish will now allow <span class="code">If-Modified-Since</span> requests
+      to objects without a <span class="code">Last-Modified</span>-header, and instead
+      use the time the object was cached instead.</p>
+      </li>
+      <li>
+        <p>Do not filter out <span class="code">Content-Range</span> headers in
+      pass.</p>
+      </li>
+      <li>
+        <p>Require -d, -b, -f, -S or -T when starting Varnishd. In human
+      terms, this means that it is legal to start varnishd without a Vcl or
+      backend, but only if you have a CLI channel of some kind.</p>
+      </li>
+      <li>
+        <p>Don't suppress <span class="code">Cache-Control</span> headers in pass
+      responses.</p>
+      </li>
+      <li>
+        <p>Merge multi-line Cache-Control and Vary header fields. Until
+      now, no browsers have needed this, but Chromium seems to find it
+      necessary to spread its Cache-Control across two lines, and we get to
+      deal with it.</p>
+      </li>
+      <li>
+        <p>Make new-purge not touch busy objects. This fixes a potential
+      crash when calling <span class="code">VRT_purge</span>.</p>
+      </li>
+      <li>
+        <p>If there are everal grace-able objects, pick the least expired
+      one.</p>
+      </li>
+      <li>
+        <p>Fix an issue with <span class="code">varnishadm -T :6082</span>
+      shorthand.</p>
+      </li>
+      <li>
+        <p>Add bourn-shell like "here" documents on the CLI. Typical
+      usage:
+      <span class="code">
+      vcl.inline vcl_new &lt;&lt; 42
+      backend foo {...}
+      sub vcl_recv {...}
+      42
+      </span></p>
+      </li>
+      <li>
+        <p>Add CLI version to the CLI-banner, starting with version 1.0 to
+      mark here-documents.</p>
+      </li>
+      <li>
+        <p>Fix a problem with the expiry thread slacking off during high
+      load.</p>
+      </li>
+    </ul>
+    <h3>varnishtest</h3>
+    <ul>
+      <li>
+        <p>Remove no longer existing <span class="code">-L</span> option.</p>
+      </li>
+    </ul>
+  </body>
+</html>

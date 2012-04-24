@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 1.0.4</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 1.0.4</h1>
+    <h2>Changes between 1.0.3 and 1.0.4</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>The request workflow has been redesigned to simplify
+      request processing and eliminate code duplication.  All
+      codepaths which need to speak HTTP now share a single
+      implementation of the protocol.  Some new VCL hooks have been
+      added, though they aren't much use yet.  The only real
+      user-visible change should be that Varnish now handles
+      persistent backend connections correctly (see <a href="http://varnish.projects.linpro.no/ticket/56">ticket #56</a>).</p>
+      </li>
+      <li>
+        <p>Support for multiple listen addresses has been
+      added.</p>
+      </li>
+      <li>
+        <p>An "include" facility has been added to VCL, allowing
+      VCL code to pull in code fragments from multiple files.</p>
+      </li>
+      <li>
+        <p>Multiple definitions of the same VCL function are now
+      concatenated into one in the order in which they appear in the
+      source.  This simplifies the mechanism for falling back to the
+      built-in default for cases which aren't handled in custom
+      code, and facilitates modularization.</p>
+      </li>
+      <li>
+        <p>The code used to format management command arguments
+      before passing them on to the child process would
+      underestimate the amount of space needed to hold each argument
+      once quotes and special characters were properly escaped,
+      resulting in a buffer overflow.  This has been
+      corrected.</p>
+      </li>
+      <li>
+        <p>The VCL compiler has been overhauled.  Several memory
+      leaks have been plugged, and error detection and reporting has
+      been improved throughout.  Parts of the compiler have been
+      refactored to simplify future extension of the
+      language.</p>
+      </li>
+      <li>
+        <p>A bug in the VCL compiler which resulted in incorrect
+      parsing of the decrement (<span class="code">-=</span>) operator has been
+      fixed.</p>
+      </li>
+      <li>
+        <p>A new <span class="code">-C</span> command-line option has been added
+      which causes <span class="code">varnishd</span> to compile the VCL code
+      (either from a file specified with <span class="code">-f</span> or the
+      built-in default), print the resulting C code and exit.</p>
+      </li>
+      <li>
+        <p>When processing a backend response using chunked
+      encoding, if a chunk header crosses a read buffer boundary,
+      read additional bytes from the backend connection until the
+      chunk header is complete.</p>
+      </li>
+      <li>
+        <p>A new <span class="code">ping_interval</span> run-time parameter
+      controls how often the management process checks that the
+      worker process is alive.</p>
+      </li>
+      <li>
+        <p>A bug which would cause the worker process to
+      dereference a <span class="code">NULL</span> pointer and crash if the
+      backend did not respond has been fixed.</p>
+      </li>
+      <li>
+        <p>In some cases, such as when they are used by AJAX
+      applications to circumvent Internet Explorer's over-eager disk
+      cache, it may be desirable to cache <span class="code">POST</span>
+      requests.  However, the code path responsible for delivering
+      objects from cache would only transmit the response body when
+      replying to a <span class="code">GET</span> request.  This has been
+      extended to also apply to <span class="code">POST</span>.</p>
+        <p>This should be revisited at a later date to allow VCL
+      code to control whether the body is delivered.</p>
+      </li>
+      <li>
+        <p>Varnish now respects <span class="code">Cache-control:
+      s-maxage</span>, and prefers it to <span class="code">Cache-control:
+      max-age</span> if both are present.</p>
+        <p>This should be revisited at a later date to allow VCL
+      code to control which headers are used and how they are
+      interpreted.</p>
+      </li>
+      <li>
+        <p>When loading a new VCL script, the management process
+      will now load the compiled object to verify that it links
+      correctly before instructing the worker process to load
+      it.</p>
+      </li>
+      <li>
+        <p>A new <span class="code">-P</span> command-line options has been
+      added which causes <span class="code">varnishd</span> to create a PID
+      file.</p>
+      </li>
+      <li>
+        <p>The <span class="code">sendfile_threshold</span> run-time parameter's
+      default value has been set to infinity after a variety of
+      <span class="code">sendfile()</span>-related bugs were discovered on
+      several platforms.</p>
+      </li>
+    </ul>
+    <h3>varnishlog</h3>
+    <ul>
+      <li>
+        <p>When grouping log entries by request,
+      <span class="code">varnishlog</span> attempts to collapse the log entry for
+      a call to a VCL function with the log entry for the
+      corresponding return from VCL.  When two VCL calls were made
+      in succession, <span class="code">varnishlog</span> would incorrectly omit
+      the newline between the two calls (see <a href="http://varnish.projects.linpro.no/ticket/95">ticket #95</a>).</p>
+      </li>
+      <li>
+        <p>New <span class="code">-D</span> and <span class="code">-P</span> command-line
+      options have been added to daemonize and create a pidfile,
+      respectively.</p>
+      </li>
+      <li>
+        <p>The flag that is raised upon reception of a
+      <span class="code">SIGHUP</span> has been marked <span class="code">volatile</span> so it
+      will not be optimized away by the compiler.</p>
+      </li>
+    </ul>
+    <h3>varnishncsa</h3>
+    <ul>
+      <li>
+        <p>The formatting callback has been largely rewritten for
+      clarity, robustness and efficiency.</p>
+        <p>If a request included a <span class="code">Host:</span> header,
+      construct and output an absolute URL.  This makes
+      <span class="code">varnishncsa</span> output from servers which handle
+      multiple virtual hosts far more useful.</p>
+      </li>
+      <li>
+        <p>The flag that is raised upon reception of a
+      <span class="code">SIGHUP</span> has been marked <span class="code">volatile</span> so it
+      will not be optimized away by the compiler.</p>
+      </li>
+    </ul>
+    <h3>Documentation</h3>
+    <ul>
+      <li>
+        <p>The documentation—especially the VCL
+      documentation—has been greatly extended and improved.</p>
+      </li>
+    </ul>
+    <h3>Build system</h3>
+    <ul>
+      <li>
+        <p>The name and location of the <span class="code">curses</span> or
+      <span class="code">ncurses</span> library is now correctly detected by the
+      <span class="code">configure</span> script instead of being hardcoded into
+      affected Makefiles.  This allows Varnish to build correctly on
+      a wider range of platforms.</p>
+      </li>
+      <li>
+        <p>Compatibility shims for <span class="code">clock_gettime()</span> are
+      now correctly applied where needed, allowing Varnish to build
+      on MacOS X.</p>
+      </li>
+      <li>
+        <p>The <span class="code">autogen.sh</span> script will now correctly
+      detect and warn about <span class="code">automake</span> versions which are
+      known not to work correctly.</p>
+      </li>
+    </ul>
+  </body>
+</html>

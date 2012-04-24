@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 2.0</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 2.0</h1>
+    <h2>Changes between 1.1.2 and 2.0</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>Only look for sendfile on platforms where we know how to
+      use it, which is FreeBSD for now.</p>
+      </li>
+      <li>
+        <p>Make it possible to adjust the shared memory log size and
+      bump the size from 8MB to 80MB.</p>
+      </li>
+      <li>
+        <p>Fix up the handling of request bodies to better match
+      what RFC2616 mandates.  This makes PUT, DELETE, OPTIONS and
+      TRACE work in addition to POST. </p>
+      </li>
+      <li>
+        <p>Change how backends are defined, to a constant structural
+      defintion style.  See
+      http://varnish.projects.linpro.no/wiki/VclSyntaxChanges for the
+      details.</p>
+      </li>
+      <li>
+        <p>Add directors, which wrap backends.  Currently, there's a
+	random director and a round-robin director.</p>
+      </li>
+      <li>
+        <p>Add "grace", which is for how long and object will be
+	served, even after it has expired.  To use this, both the
+	object's and the request's <span class="code">grace</span> parameter need
+	to be set.</p>
+      </li>
+      <li>
+        <p>Manual pages have been updated for new VCL syntax and
+      varnishd options.</p>
+      </li>
+      <li>
+        <p>Man pages and other docs have been updated.</p>
+      </li>
+      <li>
+        <p>The shared memory log file is now locked in memory, so it
+      should not be paged out to disk.</p>
+      </li>
+      <li>
+        <p>We now handle Vary correctly, as well as Expect.</p>
+      </li>
+      <li>
+        <p>ESI include support is implemented.</p>
+      </li>
+      <li>
+        <p>Make it possible to limit how much memory the malloc uses.</p>
+      </li>
+      <li>
+        <p>Solaris is now supported.</p>
+      </li>
+      <li>
+        <p>There is now a <span class="code">regsuball</span> function, which
+      works like <span class="code">regsub</span> except it replaces all
+      occurences of the regex, not just the first.</p>
+      </li>
+      <li>
+        <p>Backend and director declarations can have
+      a <span class="code">.connect_timeout</span> parameter, which tells us how
+      long to wait for a successful connection.</p>
+      </li>
+      <li>
+        <p>It is now possible to select the acceptor to use by
+      changing the <span class="code">acceptor</span> parameter.</p>
+      </li>
+      <li>
+        <p>Backends can have probes associated with them, which can
+      be checked with <span class="code">req.backend.health</span> in VCL as well as
+      being handled by directors which do load-balancing.</p>
+      </li>
+      <li>
+        <p>Support larger-than-2GB files also on 32 bit hosts.
+      Please note that this does not mean we can support caches
+      bigger than 2GB, it just means logfiles and similar can be
+      bigger.</p>
+      </li>
+      <li>
+        <p>In some cases, we would remove the wrong header when we
+      were stripping Content-Transfer-Encoding headers from a
+      request.  This has been fixed.</p>
+      </li>
+      <li>
+        <p>Backends can have a <span class="code">.max_connections</span>
+      associated with them.</p>
+      </li>
+      <li>
+        <p>On Linux, we need to set the dumpable bit on the child if
+      we want core dumps.  Make sure it's set.</p>
+      </li>
+      <li>
+        <p>Doing <span class="code">purge.hash()</span> with an empty string
+      would cause us to dump core.  Fixed so we don't do that any
+      more.</p>
+      </li>
+      <li>
+        <p>We ran into a problem with glibc's malloc on Linux where
+      it seemed like it failed to ever give memory back to the OS,
+      causing the system to swap.  We have now switched to jemalloc
+      which appears not to have this problem.</p>
+      </li>
+      <li>
+        <p><span class="code">max_restarts</span> was never checked, so we always
+      ended up running out of workspace.  Now, <span class="code">vcl_error</span>
+      is called when we reach <span class="code">max_restarts</span>.</p>
+      </li>
+    </ul>
+    <h3>varnishtest</h3>
+    <ul>
+      <li>
+        <p><span class="code">varnishtest</span> is a tool to do correctness tests
+      of varnishd.  The test suite is run by using <span class="code">make
+      check</span>.</p>
+      </li>
+    </ul>
+    <h3>varnishtop</h3>
+    <ul>
+      <li>
+        <p>We now set the field widths dynamically based on the size
+      of the terminal and the name of the longest field.</p>
+      </li>
+    </ul>
+    <h3>varnishstat</h3>
+    <ul>
+      <li>
+        <p><span class="code">varnishstat -1</span> now displays the uptime too.</p>
+      </li>
+    </ul>
+    <h3>varnishncsa</h3>
+    <ul>
+      <li>
+        <p><span class="code">varnishncsa</span> now does fflush after each
+      write.  This makes <span class="code">tail -f</span> work correctly, as well
+      as avoiding broken lines in the log file.</p>
+      </li>
+      <li>
+        <p>It is possible to get <span class="code">varnishncsa</span> to output
+      the <span class="code">X-Forwarded-For</span> instead of the client IP by
+      passing <span class="code">-f</span> to it.</p>
+      </li>
+    </ul>
+    <h3>Build system</h3>
+    <ul>
+      <li>
+        <p>Various sanity checks have been added
+      to <span class="code">configure</span>, it now complains about no ncurses or
+      if SO_RCVTIMEO or SO_SNDTIMEO are non-functional.  It also
+      aborts if there's no working acceptor mechanism </p>
+      </li>
+      <li>
+        <p>The C compiler invocation is decided by the configure
+      script and can now be overridden by passing <span class="code">VCC_CC</span>
+      when running configure.</p>
+      </li>
+    </ul>
+  </body>
+</html>

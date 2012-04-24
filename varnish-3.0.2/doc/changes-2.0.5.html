@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 2.0.5</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 2.0.5</h1>
+    <h2>Changes between 2.0.4 and 2.0.5</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>Handle object workspace overruns better.</p>
+      </li>
+      <li>
+        <p>Allow turning off ESI processing per request by using
+      <span class="code">set req.esi = off</span>.</p>
+      </li>
+      <li>
+        <p>Tell the kernel that we expect to use the mmap-ed file in
+      a random fashion.  On Linux, this turns off/down readahead and
+      increases performance.</p>
+      </li>
+      <li>
+        <p>Make it possible to change the maximum number of HTTP
+      headers we allow by
+      passing <span class="code">--with-max-header-fields=NUM</span> rather than
+      changing the code.</p>
+      </li>
+      <li>
+        <p>Implement support for HTTP continuation lines.</p>
+      </li>
+      <li>
+        <p>Change how connections are closed and only use SO_LINGER
+      for orderly connection closure.  This should hopefully make
+      worker threads less prone to hangups on network problems.</p>
+      </li>
+      <li>
+        <p>Handle multi-element purges correctly.  Previously we
+      ended up with parse errors when this was done from VCL.</p>
+      </li>
+      <li>
+        <p>Handle illegal responses from the backend better by
+      serving a 503 page rather than panic-ing.</p>
+      </li>
+      <li>
+        <p>When we run into an assertion that is not true, Varnish
+      would previously dump a little bit of information about itself.
+      Extend that information with a backtrace.  Note that this relies
+      on the varnish binary being unstripped.</p>
+      </li>
+      <li>
+        <p>Add a session_max parameter that limits the maximum
+      number of sessions we keep open before we start dropping new
+      connections summarily.</p>
+      </li>
+      <li>
+        <p>Try to consume less memory when doing ESI processing by
+      properly rolling back used workspace after processing an
+      object.  This should make it possible to
+      turn <span class="code">sess_workspace</span> quite a bit for users with
+      ESI-heavy pages.</p>
+      </li>
+      <li>
+        <p>Turn on <span class="code">session_linger</span> by default.  Tests
+      have shown that <span class="code">session_linger</span> helps a fair bit
+      with performance.</p>
+      </li>
+      <li>
+        <p>Rewrite the epoll acceptor for better performance.  This
+      should lead to both higher processing rates and maximum number
+      of connections on Linux.</p>
+      </li>
+      <li>
+        <p>Add If-None-Match support, this gives significant
+      bandwidth savings for users with compliant browsers.</p>
+      </li>
+      <li>
+        <p>RFC2616 specifies
+      that <span class="code">ETag</span>, <span class="code">Content-Location</span>, <span class="code">Expires</span>, <span class="code">Cache-Control</span>
+      and <span class="code">Vary</span> should be emitted when delivering a
+      response with the 304 response code.</p>
+      </li>
+      <li>
+        <p>Various fixes which makes Varnish compile and work on AIX.</p>
+      </li>
+      <li>
+        <p>Turn on TCP_DEFER_ACCEPT on Linux.  This should make us
+      less suspecible to denial of service attacks as well as give us
+      slightly better performance.</p>
+      </li>
+      <li>
+        <p>Add an <span class="code">.initial</span> property to the backend
+      probe specification.  This is the number of good probes we
+      pretend to have seen.  The default is one less than .threshold,
+      which means the first probe will decide if we consider the
+      backend healthy.</p>
+      </li>
+      <li>
+        <p>Make it possible to compare strings against other
+      string-like objects, not just plain strings.  This allows you to
+      compare two headers, for instance.</p>
+      </li>
+      <li>
+        <p>When support for <span class="code">restart</span>
+      in <span class="code">vcl_error</span> was added, there was no check to
+      prevent infinte recursion.  This has now been fixed.
+     </p>
+      </li>
+      <li>
+        <p>Turn on purge_dups by default.  This should make us
+      consume less memory when there are many bans for the same
+      pattern added.</p>
+      </li>
+      <li>
+        <p>Add a new log tag called <span class="code">FetchError</span> which
+      tries to explain why we could not fetch an object from the
+      backend.</p>
+      </li>
+      <li>
+        <p>Change the default <span class="code">srcaddr_ttl</span> to 0.  It is
+      not used by anything and has been removed in the development
+      version.  This will increase performance somewhat.</p>
+      </li>
+    </ul>
+    <h3>varnishtop</h3>
+    <ul>
+      <li>
+        <p>varnishtop did not handle variable-length log fields
+      correctly. This is now fixed.</p>
+      </li>
+      <li>
+        <p>varnishtop previously did not print the name of the tag,
+      which made it very hard to understand.  We now print out the
+      tag name.</p>
+      </li>
+    </ul>
+  </body>
+</html>

@@ -1,0 +1,275 @@
+.\" Man page generated from reStructeredText.
+.
+.TH VARNISHLOG 1 "2010-05-31" "0.2" ""
+.SH NAME
+varnishlog \- Display Varnish logs
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH SYNOPSIS
+.sp
+varnishlog [\-a] [\-b] [\-C] [\-c] [\-D] [\-d] [\-I regex] [\-i tag] [\-k keep]
+[\-n varnish_name] [\-o] [\-O] [\-m \fI\%tag:regex\fP ...] [\-P file] [\-r file] [\-s num] [\-u] [\-V]
+[\-w file] [\-X regex] [\-x tag]
+.SH DESCRIPTION
+.sp
+The varnishlog utility reads and presents varnishd(1) shared memory logs.
+.sp
+The following options are available:
+.INDENT 0.0
+.TP
+.B \-a
+When writing to a file, append to it rather than overwrite it.
+.TP
+.B \-b
+Include log entries which result from communication with a backend server.
+If neither \-b nor \-c is specified, varnishlog acts as if they both were.
+.TP
+.B \-C
+Ignore case when matching regular expressions.
+.TP
+.B \-c
+Include log entries which result from communication with a client.
+If neither \-b nor \-c is specified, varnishlog acts as if they both were.
+.TP
+.B \-D
+Daemonize.
+.TP
+.B \-d
+Process old log entries on startup.  Normally, varnishlog will only process entries
+which are written to the log after it starts.
+.TP
+.BI \-I \ regex
+Include log entries which match the specified regular expression.  If
+neither \-I nor \-i is specified, all log entries are included.
+.TP
+.BI \-i \ tag
+Include log entries with the specified tag.  If neither \-I nor \-i is specified,
+all log entries are included.
+.TP
+.BI \-k \ num
+Only show the first num log records.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-m \fI\%tag:regex\fP only list transactions where tag matches regex. Multiple
+\-m options are AND\-ed together.  Can not be combined with \-O
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-n
+Specifies the name of the varnishd instance to get logs from.  If \-n is not
+specified, the host name is used.
+.TP
+.B \-o
+Ignored for compatibility with earlier versions.
+.TP
+.B \-O
+Do not group log entries by request ID.  Can not be
+combined with \-m.
+.TP
+.BI \-P \ file
+Write the process\(aqs PID to the specified file.
+.TP
+.BI \-r \ file
+Read log entries from file instead of shared memory.
+.TP
+.BI \-s \ num
+Skip the first num log records.
+.TP
+.B \-u
+Unbuffered output.
+.TP
+.B \-V
+Display the version number and exit.
+.TP
+.BI \-w \ file
+Write log entries to file instead of displaying them.  The file
+will be overwritten unless the \-a option was specified. If
+varnishlog receives a SIGHUP while writing to a file, it will
+reopen the file, allowing the old one to be rotated away.
+.TP
+.BI \-X \ regex
+Exclude log entries which match the specified regular expression.
+.TP
+.BI \-x \ tag
+Exclude log entries with the specified tag.
+.UNINDENT
+.SH TAGS
+.sp
+The following log entry tags are currently defined:
+.INDENT 0.0
+.IP \(bu 2
+Backend
+.IP \(bu 2
+BackendClose
+.IP \(bu 2
+BackendOpen
+.IP \(bu 2
+BackendReuse
+.IP \(bu 2
+BackendXID
+.IP \(bu 2
+CLI
+.IP \(bu 2
+ClientAddr
+.IP \(bu 2
+Debug
+.IP \(bu 2
+Error
+.IP \(bu 2
+ExpBan
+.IP \(bu 2
+ExpKill
+.IP \(bu 2
+ExpPick
+.IP \(bu 2
+Hit
+.IP \(bu 2
+HitPass
+.IP \(bu 2
+HttpError
+.IP \(bu 2
+HttpGarbage
+.IP \(bu 2
+Length
+.IP \(bu 2
+ObjHeader
+.IP \(bu 2
+ObjLostHeader
+.IP \(bu 2
+ObjProtocol
+.IP \(bu 2
+ObjRequest
+.IP \(bu 2
+ObjResponse
+.IP \(bu 2
+ObjStatus
+.IP \(bu 2
+ObjURL
+.IP \(bu 2
+ReqEnd
+.IP \(bu 2
+ReqStart
+.IP \(bu 2
+RxHeader
+.IP \(bu 2
+RxLostHeader
+.IP \(bu 2
+RxProtocol
+.IP \(bu 2
+RxRequest
+.IP \(bu 2
+RxResponse
+.IP \(bu 2
+RxStatus
+.IP \(bu 2
+RxURL
+.IP \(bu 2
+SessionClose
+.IP \(bu 2
+SessionOpen
+.IP \(bu 2
+StatAddr
+.IP \(bu 2
+StatSess
+.IP \(bu 2
+TTL
+.IP \(bu 2
+TxHeader
+.IP \(bu 2
+TxLostHeader
+.IP \(bu 2
+TxProtocol
+.IP \(bu 2
+TxRequest
+.IP \(bu 2
+TxResponse
+.IP \(bu 2
+TxStatus
+.IP \(bu 2
+TxURL
+.IP \(bu 2
+VCL_acl
+.IP \(bu 2
+VCL_call
+.IP \(bu 2
+VCL_return
+.IP \(bu 2
+VCL_trace
+.IP \(bu 2
+WorkThread
+.UNINDENT
+.SH EXAMPLES
+.sp
+The following command line simply copies all log entries to a log file::
+.sp
+.nf
+.ft C
+$ varnishlog \-w /var/log/varnish.log
+.ft P
+.fi
+.sp
+The following command line reads that same log file and displays requests for the front page::
+.sp
+.nf
+.ft C
+$ varnishlog \-r /var/log/varnish.log \-c \-m \(aqRxURL:^/$\(aq
+.ft P
+.fi
+.SH SEE ALSO
+.INDENT 0.0
+.IP \(bu 2
+varnishd(1)
+.IP \(bu 2
+varnishhist(1)
+.IP \(bu 2
+varnishncsa(1)
+.IP \(bu 2
+varnishstat(1)
+.IP \(bu 2
+varnishtop(1)
+.UNINDENT
+.SH HISTORY
+.sp
+The varnishlog utility was developed by Poul\-Henning Kamp ⟨phk@phk.freebsd.dk⟩ in cooperation with Verdens Gang
+AS, Varnish Software AS and Varnish Software.  This manual page was initially written by Dag\-Erling Smørgrav.
+.SH COPYRIGHT
+.sp
+This document is licensed under the same licence as Varnish
+itself. See LICENCE for details.
+.INDENT 0.0
+.IP \(bu 2
+Copyright (c) 2006 Verdens Gang AS
+.IP \(bu 2
+Copyright (c) 2006\-2011 Varnish Software AS
+.UNINDENT
+.SH AUTHOR
+Dag-Erling Smørgrav, Per Buer
+.\" Generated by docutils manpage writer.
+.\" 
+.

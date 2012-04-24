@@ -1,0 +1,280 @@
+.\" Man page generated from reStructeredText.
+.
+.TH VARNISH-COUNTERS 7 "2011-09-20" "1.0" ""
+.SH NAME
+varnish-counters \- Varnish counter field definitions
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH MAIN COUNTERS
+.sp
+client_conn – Client connections accepted
+.sp
+client_drop – Connection dropped, no sess/wrk
+.sp
+client_req – Client requests received
+.sp
+cache_hit – Cache hits
+.sp
+cache_hitpass – Cache hits for pass
+.sp
+cache_miss – Cache misses
+.sp
+backend_conn – Backend conn. success
+.sp
+backend_unhealthy – Backend conn. not attempted
+.sp
+backend_busy – Backend conn. too many
+.sp
+backend_fail – Backend conn. failures
+.sp
+backend_reuse – Backend conn. reuses
+.sp
+backend_toolate – Backend conn. was closed
+.sp
+backend_recycle – Backend conn. recycles
+.sp
+backend_retry – Backend conn. retry
+.sp
+fetch_head – Fetch head
+.sp
+fetch_length – Fetch with Length
+.sp
+fetch_chunked – Fetch chunked
+.sp
+fetch_eof – Fetch EOF
+.sp
+fetch_bad – Fetch had bad headers
+.sp
+fetch_close – Fetch wanted close
+.sp
+fetch_oldhttp – Fetch pre HTTP/1.1 closed
+.sp
+fetch_zero – Fetch zero len
+.sp
+fetch_failed – Fetch failed
+.sp
+fetch_1xx – Fetch no body (1xx)
+.sp
+fetch_204 – Fetch no body (204)
+.sp
+fetch_304 – Fetch no body (304)
+.sp
+n_sess_mem – N struct sess_mem
+.sp
+n_sess – N struct sess
+.sp
+n_object – N struct object
+.sp
+n_vampireobject – N unresurrected objects
+.sp
+n_objectcore – N struct objectcore
+.sp
+n_objecthead – N struct objecthead
+.sp
+n_waitinglist – N struct waitinglist
+.sp
+n_vbc – N struct vbc
+.sp
+n_wrk – N worker threads
+.sp
+n_wrk_create – N worker threads created
+.sp
+n_wrk_failed – N worker threads not created
+.sp
+n_wrk_max – N worker threads limited
+.sp
+n_wrk_lqueue – work request queue length
+.sp
+n_wrk_queued – N queued work requests
+.sp
+n_wrk_drop – N dropped work requests
+.sp
+n_backend – N backends
+.sp
+n_expired – N expired objects
+.sp
+n_lru_nuked – N LRU nuked objects
+.sp
+n_lru_moved – N LRU moved objects
+.sp
+losthdr – HTTP header overflows
+.sp
+n_objsendfile – Objects sent with sendfile
+.sp
+n_objwrite – Objects sent with write
+.sp
+n_objoverflow – Objects overflowing workspace
+.sp
+s_sess – Total Sessions
+.sp
+s_req – Total Requests
+.sp
+s_pipe – Total pipe
+.sp
+s_pass – Total pass
+.sp
+s_fetch – Total fetch
+.sp
+s_hdrbytes – Total header bytes
+.sp
+s_bodybytes – Total body bytes
+.sp
+sess_closed – Session Closed
+.sp
+sess_pipeline – Session Pipeline
+.sp
+sess_readahead – Session Read Ahead
+.sp
+sess_linger – Session Linger
+.sp
+sess_herd – Session herd
+.sp
+shm_records – SHM records
+.sp
+shm_writes – SHM writes
+.sp
+shm_flushes – SHM flushes due to overflow
+.sp
+shm_cont – SHM MTX contention
+.sp
+shm_cycles – SHM cycles through buffer
+.sp
+sms_nreq – SMS allocator requests
+.sp
+sms_nobj – SMS outstanding allocations
+.sp
+sms_nbytes – SMS outstanding bytes
+.sp
+sms_balloc – SMS bytes allocated
+.sp
+sms_bfree – SMS bytes freed
+.sp
+backend_req – Backend requests made
+.sp
+n_vcl – N vcl total
+.sp
+n_vcl_avail – N vcl available
+.sp
+n_vcl_discard – N vcl discarded
+.sp
+n_ban – N total active bans
+.sp
+n_ban_add – N new bans added
+.sp
+n_ban_retire – N old bans deleted
+.sp
+n_ban_obj_test – N objects tested
+.sp
+n_ban_re_test – N regexps tested against
+.sp
+n_ban_dups – N duplicate bans removed
+.sp
+hcb_nolock – HCB Lookups without lock
+.sp
+hcb_lock – HCB Lookups with lock
+.sp
+hcb_insert – HCB Inserts
+.sp
+esi_errors – ESI parse errors (unlock)
+.sp
+esi_warnings – ESI parse warnings (unlock)
+.sp
+accept_fail – Accept failures
+.sp
+client_drop_late – Connection dropped late
+.sp
+uptime – Client uptime
+.sp
+dir_dns_lookups – DNS director lookups
+.sp
+dir_dns_failed – DNS director failed lookups
+.sp
+dir_dns_hit – DNS director cached lookups hit
+.sp
+dir_dns_cache_full – DNS director full dnscache
+.sp
+vmods – Loaded VMODs
+.sp
+n_gzip – Gzip operations
+.sp
+n_gunzip – Gunzip operations
+.SH LOCK COUNTERS
+.sp
+creat – Created locks
+.sp
+destroy – Destroyed locks
+.sp
+locks – Lock Operations
+.sp
+colls – Collisions
+.SH PER MALLOC STORAGE COUNTERS
+.sp
+c_req – Allocator requests
+.sp
+c_fail – Allocator failures
+.sp
+c_bytes – Bytes allocated
+.sp
+c_freed – Bytes freed
+.sp
+g_alloc – Allocations outstanding
+.sp
+g_bytes – Bytes outstanding
+.sp
+g_space – Bytes available
+.SH PER FILE STORAGE COUNTERS
+.sp
+c_req – Allocator requests
+.sp
+c_fail – Allocator failures
+.sp
+c_bytes – Bytes allocated
+.sp
+c_freed – Bytes freed
+.sp
+g_alloc – Allocations outstanding
+.sp
+g_bytes – Bytes outstanding
+.sp
+g_space – Bytes available
+.sp
+g_smf – N struct smf
+.sp
+g_smf_frag – N small free smf
+.sp
+g_smf_large – N large free smf
+.SH PER BACKEND COUNTERS
+.sp
+vcls – VCL references
+.sp
+happy – Happy health probes
+.SH AUTHOR
+Tollef Fog Heen
+.\" Generated by docutils manpage writer.
+.\" 
+.

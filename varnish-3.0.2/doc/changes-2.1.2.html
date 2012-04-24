@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 2.1.2</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 2.1.2</h1>
+    <h2>Changes between 2.1.1 and 2.1.2</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>When adding <span class="code">Range</span> support for 2.1.1, we
+      accidentially introduced a bug which would append garbage to
+      objects larger than the chunk size, by default 128k. Browsers
+      would do the right thing due to Content-Length, but some load
+      balancers would get very confused.</p>
+      </li>
+    </ul>
+  </body>
+</html>

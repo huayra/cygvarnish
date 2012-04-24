@@ -1,0 +1,15 @@
+DESCRIPTION="Varnish Cache"
+HOMEPAGE="http://www.varnish-cache.org/"
+SRC_URI="http://repo.varnish-cache.org/source/${P}.tar.gz"
+# In Cygwin ncurses need CFLAG=-I/usr/include/ncurses (http://cygwin.com/ml/cygwin/2010-05/msg00465.html)
+CFLAGS+="-I/usr/include/ncurses"
+# Add -no-undefined to LDFLAGS
+LDFLAGS+=" -no-undefined"
+MAKEOPTS+=" -j1"
+
+src_install()
+{
+	cd ${B}
+	cyginstall
+	keepdir /var/varnish
+}

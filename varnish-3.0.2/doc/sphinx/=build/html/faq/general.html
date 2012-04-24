@@ -1,0 +1,407 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>General questions &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Frequently asked questions" href="index.html" />
+    <link rel="next" title="HTTP" href="http.html" />
+    <link rel="prev" title="Frequently asked questions" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="http.html" title="HTTP"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Frequently asked questions"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Frequently asked questions</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="general-questions">
+<h1>General questions<a class="headerlink" href="#general-questions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-is-varnish">
+<h2>What is Varnish?<a class="headerlink" href="#what-is-varnish" title="Permalink to this headline">¶</a></h2>
+<p>Varnish is a state-of-the-art, high-performance <a class="reference external" href="http://en.wikipedia.org/wiki/Web_accelerator">web accelerator</a>. It uses the advanced features in Linux 2.6, FreeBSD 6/7 and Solaris 10 to achieve its high performance.</p>
+<p>Some of the features include</p>
+<ul class="simple">
+<li>A modern design</li>
+<li>VCL - a very flexible configuration language</li>
+<li>Load balancing with health checking of backends</li>
+<li>Partial support for ESI</li>
+<li>URL rewriting</li>
+<li>Graceful handling of &quot;dead&quot; backends</li>
+</ul>
+<p>Features to come (Experimental):</p>
+<ul class="simple">
+<li>Support for Ranged headers</li>
+<li>Support for persistent cache</li>
+</ul>
+<p>Varnish is free software and is licenced under a modified BSD licence. Please read the introduction to get started with Varnish.</p>
+</div>
+<div class="section" id="how">
+<h2>How...<a class="headerlink" href="#how" title="Permalink to this headline">¶</a></h2>
+<p><strong>How much RAM/Disk do I need for Varnish?</strong></p>
+<p>That depends on pretty much everything.</p>
+<p>I think our best current guidance is that you go for a cost-effective
+RAM configuration, something like 1-16GB, and an SSD.</p>
+<p>Unless you positively know that you will need it, there is
+little point in spending a fortune on a hand-sewn motherboard
+that can fit several TB in special RAM blocks, riveted together
+by leftover watch-makers in Switzerland.</p>
+<p>On the other hand, if you plot your traffic in Gb/s, you probably
+need all the RAM you can afford/get.</p>
+<p><strong>How can I limit Varnish to use less RAM?</strong></p>
+<p>You can not.  Varnish operates in Virtual Memory and it is up to the
+kernel to decide which process gets to use how much RAM to map the
+virtual address-space of the process.</p>
+<p><strong>How do I instruct varnish to ignore the query parameters and only cache one instance of an object?</strong></p>
+<p>This can be achieved by removing the query parameters using a regexp:</p>
+<div class="highlight-python"><pre>sub vcl_recv {
+    set req.url = regsub(req.url, "\?.*", "");
+}</pre>
+</div>
+<p><strong>How can I force a refresh on a object cached by varnish?</strong></p>
+<p>Refreshing is often called <a class="reference external" href="http://dictionary.reference.com/browse/PURGE">purging</a> a document.  You can purge at least 2 different ways in Varnish:</p>
+<ol class="arabic">
+<li><p class="first">Command line</p>
+<blockquote>
+<div><p>From the command line you can write:</p>
+<div class="highlight-python"><pre>ban.url ^/$</pre>
+</div>
+<p>to ban your / document.  As you might see ban.url takes an <a class="reference external" href="http://en.wikipedia.org/wiki/Regular_expression">regular expression</a>
+as its argument. Hence the <tt class="docutils literal"><span class="pre">^</span></tt> and <tt class="docutils literal"><span class="pre">$</span></tt> at the front and end.  If the <tt class="docutils literal"><span class="pre">^</span></tt> is omitted, all the documents ending in a <tt class="docutils literal"><span class="pre">/</span></tt> in the cache would be deleted.</p>
+<p>So to delete all the documents in the cache, write:</p>
+<div class="highlight-python"><pre>ban.url .</pre>
+</div>
+<p>at the command line.</p>
+</div></blockquote>
+</li>
+<li><p class="first">HTTP PURGE</p>
+<blockquote>
+<div><p>VCL code to allow HTTP PURGE is to be found <a class="reference external" href="http://www.varnish-cache.org/wiki/VCLExamplePurging">here</a>. Note that this method does not support wildcard purging.</p>
+</div></blockquote>
+</li>
+</ol>
+<p><strong>How can I debug the requests of a single client?</strong></p>
+<p>The &quot;varnishlog&quot; utility may produce a horrendous amount of output.  To be able debug our own traffic can be useful.</p>
+<p>The ReqStart token will include the client IP address.  To see log entries matching this, type:</p>
+<div class="highlight-python"><pre>$ varnishlog -c -m ReqStart:192.0.2.123</pre>
+</div>
+<p>To see the backend requests generated by a client IP address, we can match on the TxHeader token, since the IP address of the client is included in the X-Forwarded-For header in the request sent to the backend.</p>
+<p>At the shell command line, type:</p>
+<div class="highlight-python"><pre>$ varnishlog -b -m TxHeader:192.0.2.123</pre>
+</div>
+<p><strong>How can I rewrite URLS before they are sent to the backend?</strong></p>
+<p>You can use the <tt class="docutils literal"><span class="pre">regsub()</span></tt> function to do this.  Here's an example for zope, to rewrite URLs for the virtualhostmonster:</p>
+<div class="highlight-python"><pre>if (req.http.host ~ "^(www.)?example.com") {
+  set req.url = regsub(req.url, "^", "/VirtualHostBase/http/example.com:80/Sites/example.com/VirtualHostRoot");
+}</pre>
+</div>
+<p><strong>I have a site with many host names, how do I keep them from multiplying the cache?</strong></p>
+<p>You can do this by normalizing the <tt class="docutils literal"><span class="pre">Host</span></tt> header for all your host names.  Here's a VCL example:</p>
+<div class="highlight-python"><pre>if (req.http.host ~ "^(www.)?example.com") {
+  set req.http.host = "example.com";
+}</pre>
+</div>
+<p><strong>How do I do to alter the request going to the backend?</strong>
+You can use the <tt class="docutils literal"><span class="pre">bereq</span></tt> object for altering requests going to the backend, but you can only 'set' values to it. Therefore use req.url to build the request:</p>
+<div class="highlight-python"><pre>sub vcl_miss {
+        set bereq.url = regsub(req.url,"stream/","/");
+        return(fetch);
+}</pre>
+</div>
+<p><strong>How do I force the backend to send Vary headers?</strong></p>
+<p>We have anecdotal evidence of non-RFC2616 compliant backends, which support content negotiation, but which do not emit a Vary header, unless the request contains Accept headers.</p>
+<p>It may be appropriate to send no-op Accept headers to trick the backend into sending us the Vary header.</p>
+<p>The following should be sufficient for most cases:</p>
+<div class="highlight-python"><pre>Accept: */*
+Accept-Language: *
+Accept-Charset: *
+Accept-Encoding: identity</pre>
+</div>
+<p>Note that Accept-Encoding can not be set to <tt class="docutils literal"><span class="pre">*</span></tt>, as the backend might then send back a compressed response which the client would be unable to process.</p>
+<p>This can of course be implemented in VCL.</p>
+<p><strong>How can I customize the error messages that Varnish returns?</strong></p>
+<p>A custom error page can be generated by adding a <tt class="docutils literal"><span class="pre">vcl_error</span></tt> to your configuration file. The default error page looks like this:</p>
+<div class="highlight-python"><pre>sub vcl_error {
+    set obj.http.Content-Type = "text/html; charset=utf-8";
+
+    synthetic {"
+    &lt;?xml version="1.0" encoding="utf-8"?&gt;
+    &lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"&gt;
+    &lt;html&gt;
+      &lt;head&gt;
+        &lt;title&gt;"} + obj.status + " " + obj.response + {"&lt;/title&gt;
+      &lt;/head&gt;
+      &lt;body&gt;
+      &lt;h1&gt;Error "} + obj.status + " " + obj.response + {"&lt;/h1&gt;
+      &lt;p&gt;"} + obj.response + {"&lt;/p&gt;
+        &lt;h3&gt;Guru Meditation:&lt;/h3&gt;
+        &lt;p&gt;XID: "} + req.xid + {"&lt;/p&gt;
+        &lt;address&gt;&lt;a href="http://www.varnish-cache.org/"&gt;Varnish&lt;/a&gt;&lt;/address&gt;
+      &lt;/body&gt;
+     &lt;/html&gt;
+     "};
+    return(deliver);
+}</pre>
+</div>
+<p><strong>How do I instruct varnish to ignore the query parameters and only cache one instance of an object?</strong></p>
+<p>This can be achieved by removing the query parameters using a regexp:</p>
+<div class="highlight-python"><pre>sub vcl_recv {
+    set req.url = regsub(req.url, "\?.*", "");
+}</pre>
+</div>
+</div>
+<div class="section" id="where">
+<h2>Where...<a class="headerlink" href="#where" title="Permalink to this headline">¶</a></h2>
+<p><strong>Can I find varnish for my operating system?</strong></p>
+<p>We know that Varnish has been packaged for Debian, Ubuntu, RHEL,
+CentOS, (Open)SUSE, Gentoo and FreeBSD, possibly more.  Check whatever
+package manager you use. Or read <a class="reference internal" href="../installation/install.html#install-doc"><em>Installing Varnish on your computer</em></a>.</p>
+</div>
+<div class="section" id="can-i">
+<h2>Can I...<a class="headerlink" href="#can-i" title="Permalink to this headline">¶</a></h2>
+<p><strong>Can I use Varnish as a client-side proxy?</strong></p>
+<p>No.  Varnish needs all backends configured in the VCL.  Look at squid
+instead.</p>
+<p><strong>Can I run Varnish on a 32bit system?</strong></p>
+<p>Yes, recently somebody even claimed to run Varnish on his N900 mobile
+phone recently, but if you have the choice, go 64 bit from the start.</p>
+<p>Varnish is written to use Virtual Memory and on a 32bit system that
+really cramps your style, and you will have trouble configuring more
+than 2 GB of storage.</p>
+<p><strong>Can I run Varnish on the same system as Apache?</strong></p>
+<p>Yes, and many people do that with good success.</p>
+<p>There will be competition for resources, but Apache is not particular
+good at using RAM effectively and Varnish is, so this synergy usually
+more than compensates for the competition.</p>
+<p><strong>Can I run multiple Varnish on the same system?</strong></p>
+<p>Yes, as long as you give them different TCP ports and different <tt class="docutils literal"><span class="pre">-n</span></tt>
+arguments, you will be fine.</p>
+<p><strong>Can I cache multiple virtual hosts with one Varnish?</strong></p>
+<p>Yes, that works right out of the box.</p>
+<p><strong>Can I see what is cached in Varnish?</strong></p>
+<p>That is not possible for several reasons.  A command to list
+all the contents of a Varnish cache with millions of objects would
+bring your Varnish to a standstill while it traverses the index.</p>
+<p>Besides, the output is a lot less useful than you might think.</p>
+<p><strong>Can I use Varnish to do HTTPS?</strong></p>
+<p>Not at present, and while we keep an eye on this, there are no
+current plans to add HTTPS support, until we can find a way where
+it adds significant value, relative to running a stand-alone
+HTTPS proxy such as nginx or pound.</p>
+<p><strong>Can Varnish load balance between multiple backends?</strong></p>
+<p>Yes, you need VCL code like this:</p>
+<div class="highlight-python"><pre>    director foobar round-robin {
+        { .backend = { .host = "www1.example.com"; .port = "http"; } }
+        { .backend = { .host = "www2.example.com"; .port = "http"; } }
+    }
+
+    sub vcl_recv {
+            set req.backend = foobar;
+    }
+
+(XXX: reference to docs, once written)</pre>
+</div>
+</div>
+<div class="section" id="why">
+<h2>Why ...<a class="headerlink" href="#why" title="Permalink to this headline">¶</a></h2>
+<p><strong>Why does it look like Varnish sends all requests to the backend? I thought it was a cache?</strong></p>
+<dl class="docutils">
+<dt>There are 2 common reasons for this:</dt>
+<dd><ol class="first last arabic">
+<li><p class="first">The object's <tt class="docutils literal"><span class="pre">ttl</span> <span class="pre">expired</span></tt>. A common situation is that the backend does not set an expiry time on the requested image/file/webpage, so Varnish uses the default TTL (normally 120s).</p>
+</li>
+<li><dl class="first docutils">
+<dt>Your site uses <tt class="docutils literal"><span class="pre">cookies</span></tt>:</dt>
+<dd><ul class="first last simple">
+<li>By default, varnish will not cache <tt class="docutils literal"><span class="pre">responses</span></tt> from the backend that come with a <tt class="docutils literal"><span class="pre">Set-Cookie</span></tt>: header.</li>
+<li>By default, varnish will not serve <tt class="docutils literal"><span class="pre">requests</span></tt> with a <tt class="docutils literal"><span class="pre">Cookie:</span></tt> header, but pass them to the backend instead. Check out [wiki:VCLExamples these VCL examples] on how to make varnish cache cookied/logged in users sanely.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+<p><strong>Why are regular expressions case-sensitive?</strong></p>
+<p>Some HTTP headers, such as <tt class="docutils literal"><span class="pre">Host:</span></tt> and <tt class="docutils literal"><span class="pre">Location:</span></tt> contain fully
+qualified domain names, which by definition is not case-sensitive.
+Other HTTP headers are case-sensitive, most notably the URLs.
+Therefore a &quot;one size fits all&quot; solution is not possible.</p>
+<p>In previous releases, we used the POSIX regular expressions
+supplied with the operating system, and decided, because the
+most common use of regexps were on <tt class="docutils literal"><span class="pre">`Host:`</span></tt> headers, that
+they should not be case-sensitive.</p>
+<p>From version 2.1.0 and forward, we use PCRE regular expressions,
+where it <em>is</em> possible to control case-sensitivity in the
+individual regular expressions, so we decided that it would
+probably confuse people if we made the default case-insensitive.
+(We promise not to change our minds about this again.)</p>
+<p>To make a PCRE regex case insensitive, put <tt class="docutils literal"><span class="pre">(?i)</span></tt> at the start:</p>
+<div class="highlight-python"><pre>if (req.http.host ~ "(?i)example.com$") {
+        ...
+}</pre>
+</div>
+<p>See the <a class="reference external" href="http://www.pcre.org/pcre.txt">PCRE man pages</a> for more information.</p>
+<p><strong>Are regular expressions case sensitive or not? Can I change it?</strong></p>
+<p>In 2.1 and newer, regular expressions are case sensitive by default.  In earlier versions, they were case insensitive.</p>
+<p>To change this for a single regex in 2.1, use <tt class="docutils literal"><span class="pre">(?i)</span></tt> at the start.</p>
+<p>See the <a class="reference external" href="http://www.pcre.org/pcre.txt">PCRE man pages</a> for more information.</p>
+<p><strong>Why does the ``Via:`` header say 1.1 in Varnish 2.1.x?</strong></p>
+<p>The number in the <tt class="docutils literal"><span class="pre">Via:</span></tt> header is the HTTP protocol version
+supported/applied, not the software's version number.</p>
+<p><strong>Why did you call it *Varnish*?</strong></p>
+<p>Long story, but basically the instigator of Varnish spent a long
+time staring at an art-poster with the word &quot;Vernisage&quot; and ended
+up checking it in a dictionary, which gives the following three
+meanings of the word:</p>
+<p>r.v. var·nished, var·nish·ing, var·nish·es</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>To cover with varnish.</li>
+<li>To give a smooth and glossy finish to.</li>
+<li>To give a deceptively attractive appearance to; gloss over.</li>
+</ol>
+</div></blockquote>
+<p>The three point describes happens to your backend system when you
+put Varnish in front of it.</p>
+<p><strong>Why does Varnish require the system to have a C compiler?</strong></p>
+<p>The <a class="reference internal" href="configuration.html#faq-vcl"><em>VCL</em></a> compiler generates C source as output (your config file), and uses the systems C-compiler to compile that into a shared library.  If there is no C compiler, Varnish will not work.</p>
+<p><strong>Isn't that security problem?</strong></p>
+<p>The days when you could prevent people from running non-approved programs by removing the C compiler from your system ended roughly with the VAX 11/780 computer.</p>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<p><strong>Why am I getting a cache hit, but a request is still going to my backend?</strong></p>
+<p>Varnish has a feature called <strong>hit for pass</strong>, which is used when Varnish gets a response from the backend and finds out it cannot be cached. In such cases, Varnish will create a cache object that records that fact, so that the next request goes directly to &quot;pass&quot;.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>Since Varnish bundles multiple requests for the same URL to the backend, a common case where a client will get a <strong>hit for pass</strong> is:</dt>
+<dd><ul class="first last simple">
+<li>Client 1 requests url /foo</li>
+<li>Client 2..N request url /foo</li>
+<li>Varnish tasks a worker to fetch /foo for Client 1</li>
+<li>Client 2..N are now queued pending response from the worker</li>
+<li>Worker returns object to varnish which turns out to be non-cacheable.</li>
+<li>Client 2..N are now given the <strong>hit for pass</strong> object instructing them to go to the backend</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<p>The <strong>hit for pass</strong> object will stay cached for the duration of its ttl. This means that subsequent clients requesting /foo will be sent straight to the backend as long as the <strong>hit for pass</strong> object exists.
+The <strong class="command">varnishstat</strong> can tell you how many <strong>hit for pass</strong> objects varnish has served. The default vcl will set ttl for a hit_for_pass object to 120s. But you can override this, using the following logic:</p>
+<div class="highlight-python"><pre>sub vcl_fetch {
+  if (!obj.cacheable) {
+    # Limit the lifetime of all 'hit for pass' objects to 10 seconds
+    obj.ttl = 10s;
+    return(hit_for_pass);
+  }
+}</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">General questions</a><ul>
+<li><a class="reference internal" href="#what-is-varnish">What is Varnish?</a></li>
+<li><a class="reference internal" href="#how">How...</a></li>
+<li><a class="reference internal" href="#where">Where...</a></li>
+<li><a class="reference internal" href="#can-i">Can I...</a></li>
+<li><a class="reference internal" href="#why">Why ...</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Frequently asked questions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="http.html"
+                        title="next chapter">HTTP</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/faq/general.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="http.html" title="HTTP"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Frequently asked questions"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Frequently asked questions</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

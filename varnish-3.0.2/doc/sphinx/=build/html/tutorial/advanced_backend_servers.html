@@ -1,0 +1,250 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Advanced Backend configuration &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Using Varnish" href="index.html" />
+    <link rel="next" title="Misbehaving servers" href="handling_misbehaving_servers.html" />
+    <link rel="prev" title="Running inside a virtual machine (VM)" href="virtualised.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="handling_misbehaving_servers.html" title="Misbehaving servers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="virtualised.html" title="Running inside a virtual machine (VM)"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="advanced-backend-configuration">
+<h1>Advanced Backend configuration<a class="headerlink" href="#advanced-backend-configuration" title="Permalink to this headline">¶</a></h1>
+<p>At some point you might need Varnish to cache content from several
+servers. You might want Varnish to map all the URL into one single
+host or not. There are lot of options.</p>
+<p>Lets say we need to introduce a Java application into out PHP web
+site. Lets say our Java application should handle URL beginning with
+/java/.</p>
+<p>We manage to get the thing up and running on port 8000. Now, lets have
+a look a default.vcl.:</p>
+<div class="highlight-python"><pre>backend default {
+    .host = "127.0.0.1";
+    .port = "8080";
+}</pre>
+</div>
+<p>We add a new backend.:</p>
+<div class="highlight-python"><pre>backend java {
+    .host = "127.0.0.1";
+    .port = "8000";
+}</pre>
+</div>
+<p>Now we need tell where to send the difference URL. Lets look at vcl_recv.:</p>
+<div class="highlight-python"><pre>sub vcl_recv {
+    if (req.url ~ "^/java/") {
+        set req.backend = java;
+    } else {
+        set req.backend = default.
+    }
+}</pre>
+</div>
+<p>It's quite simple, really. Lets stop and think about this for a
+moment. As you can see you can define how you choose backends based on
+really arbitrary data. You want to send mobile devices to a different
+backend? No problem. if (req.User-agent ~ /mobile/) .... should do the
+trick.</p>
+</div>
+<div class="section" id="directors">
+<h1>Directors<a class="headerlink" href="#directors" title="Permalink to this headline">¶</a></h1>
+<p>You can also group several backend into a group of backends. These
+groups are called directors. This will give you increased performance
+and resilience. You can define several backends and group them
+together in a director.:</p>
+<div class="highlight-python"><pre>backend server1 {
+    .host = "192.168.0.10";
+}
+backend server2{
+    .host = "192.168.0.10";
+}</pre>
+</div>
+<p>Now we create the director.:</p>
+<div class="highlight-python"><pre>director example_director round-robin {
+{
+        .backend = server1;
+}
+# server2
+{
+        .backend = server2;
+}
+# foo
+}</pre>
+</div>
+<p>This director is a round-robin director. This means the director will
+distribute the incoming requests on a round-robin basis. There is
+also a <em>random</em> director which distributes requests in a, you guessed
+it, random fashion.</p>
+<p>But what if one of your servers goes down? Can Varnish direct all the
+requests to the healthy server? Sure it can. This is where the Health
+Checks come into play.</p>
+</div>
+<div class="section" id="health-checks">
+<span id="tutorial-advanced-backend-servers-health"></span><h1>Health checks<a class="headerlink" href="#health-checks" title="Permalink to this headline">¶</a></h1>
+<p>Lets set up a director with two backends and health checks. First lets
+define the backends.:</p>
+<div class="highlight-python"><pre>backend server1 {
+  .host = "server1.example.com";
+  .probe = {
+         .url = "/";
+         .interval = 5s;
+         .timeout = 1 s;
+         .window = 5;
+         .threshold = 3;
+    }
+  }
+backend server2 {
+   .host = "server2.example.com";
+   .probe = {
+         .url = "/";
+         .interval = 5s;
+         .timeout = 1 s;
+         .window = 5;
+         .threshold = 3;
+   }
+ }</pre>
+</div>
+<p>Whats new here is the probe. Varnish will check the health of each
+backend with a probe. The options are</p>
+<dl class="docutils">
+<dt>url</dt>
+<dd>What URL should varnish request.</dd>
+<dt>interval</dt>
+<dd>How often should we poll</dd>
+<dt>timeout</dt>
+<dd>What is the timeout of the probe</dd>
+<dt>window</dt>
+<dd>Varnish will maintain a <em>sliding window</em> of the results. Here the
+window has five checks.</dd>
+<dt>threshold</dt>
+<dd>How many of the .window last polls must be good for the backend to be declared healthy.</dd>
+<dt>initial</dt>
+<dd>How many of the of the probes a good when Varnish starts - defaults
+to the same amount as the threshold.</dd>
+</dl>
+<p>Now we define the director.:</p>
+<div class="highlight-python"><pre>director example_director round-robin {
+      {
+              .backend = server1;
+      }
+      # server2
+      {
+              .backend = server2;
+      }
+
+      }</pre>
+</div>
+<p>You use this director just as you would use any other director or
+backend. Varnish will not send traffic to hosts that are marked as
+unhealthy. Varnish can also serve stale content if all the backends are
+down. See <a class="reference internal" href="handling_misbehaving_servers.html#tutorial-handling-misbehaving-servers"><em>Misbehaving servers</em></a> for more
+information on how to enable this.</p>
+<p>Please note that Varnish will keep probes active for all loaded
+VCLs. Varnish will coalesce probes that seem identical - so be careful
+not to change the probe config if you do a lot of VCL
+loading. Unloading the VCL will discard the probes.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Advanced Backend configuration</a></li>
+<li><a class="reference internal" href="#directors">Directors</a></li>
+<li><a class="reference internal" href="#health-checks">Health checks</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="virtualised.html"
+                        title="previous chapter">Running inside a virtual machine (VM)</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="handling_misbehaving_servers.html"
+                        title="next chapter">Misbehaving servers</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/advanced_backend_servers.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="handling_misbehaving_servers.html" title="Misbehaving servers"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="virtualised.html" title="Running inside a virtual machine (VM)"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

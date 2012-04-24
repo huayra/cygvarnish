@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 2.1</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 2.1</h1>
+    <h2>Changes between 2.0.6 and 2.1.0</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>The changelog in 2.1.0 included syntax errors, causing
+      the generated changelog to be empty.</p>
+      </li>
+      <li>
+        <p>The help text for <span class="code">default_grace</span> was wrongly
+      formatted and included a syntax error.  This has now been fixed.</p>
+      </li>
+      <li>
+        <p><span class="code">varnishd</span> now closes the file descriptor used
+      to read the management secret file (from the <span class="code">-S</span>
+      parameter).</p>
+      </li>
+      <li>
+        <p>The child would previously try to close every valid file
+	descriptor, something which could cause problems if the file
+	descriptor ulimit was set too high.  We now keep track of all
+	the file descriptors we open and only close up to that number.
+	</p>
+      </li>
+      <li>
+        <p>ESI was partially broken in 2.1.0 due to a bug in the
+      rollback of session workspace.  This has been fixed.</p>
+      </li>
+      <li>
+        <p>Reject the <span class="code">auth</span>command rather than crash if
+      there is no <span class="code">-S</span> parameter given.</p>
+      </li>
+      <li>
+        <p>Align pointers in allocated objects.  This will in theory
+      make Varnish a tiny bit faster at the expense of slightly more
+      memory usage.</p>
+      </li>
+      <li>
+        <p>Ensure the master process process id is updated in the
+      shared memory log file after we go into the background.</p>
+      </li>
+      <li>
+        <p><span class="code">HEAD</span> requests would be converted to GET
+      requests too early, which affected <span class="code">pass</span>
+      and <span class="code">pipe</span>.  This has been fixed.</p>
+      </li>
+      <li>
+        <p>Update the documentation to point out that the TTL is no
+      longer taken into account to decide whether an object is
+      cacheable or not.</p>
+      </li>
+      <li>
+        <p>Add support for completely obliterating an object and all
+      variants of it.  Currently, this has to be done using inline C.</p>
+      </li>
+      <li>
+        <p>Add experimental support for the <span class="code">Range</span>
+      header.  This has to be enabled using the parameter
+      http_range_support.</p>
+      </li>
+      <li>
+        <p>The <span class="code">critbit</span> hasher could get into a deadlock
+      and had a race condition.  Both those have now been fixed.</p>
+      </li>
+    </ul>
+    <h3>varnishsizes</h3>
+    <ul>
+      <li>
+        <p><span class="code">varnishsizes</span>, which is
+      like <span class="code">varnishhost</span>, but for the length of objects,
+      has been added..</p>
+      </li>
+    </ul>
+  </body>
+</html>

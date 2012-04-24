@@ -1,0 +1,4 @@
+sdesc: "Varnish Cache HTTP accelerator"
+ldesc: "Varnish is a web accelerator written with performance and flexibility in mind. It's modern architecture gives it a significantly better performance than many of it's competing products. Varnish store web pages in memory so the web servers don't have to create the same web page over and over again. The web server only recreate a page when it is changed. Additionally Varnish can serve web pages much faster then any application server is capable of - giving the website a significant speed up."
+category: Net Web
+requires: cygwin gcc gcc-core libncurses10 libpcre0

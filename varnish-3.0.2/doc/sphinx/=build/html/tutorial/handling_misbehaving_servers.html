@@ -1,0 +1,213 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Misbehaving servers &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Using Varnish" href="index.html" />
+    <link rel="next" title="Advanced topics" href="advanced_topics.html" />
+    <link rel="prev" title="Advanced Backend configuration" href="advanced_backend_servers.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="advanced_topics.html" title="Advanced topics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="advanced_backend_servers.html" title="Advanced Backend configuration"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="misbehaving-servers">
+<span id="tutorial-handling-misbehaving-servers"></span><h1>Misbehaving servers<a class="headerlink" href="#misbehaving-servers" title="Permalink to this headline">¶</a></h1>
+<p>A key feature of Varnish is its ability to shield you from misbehaving
+web- and application servers.</p>
+<div class="section" id="grace-mode">
+<h2>Grace mode<a class="headerlink" href="#grace-mode" title="Permalink to this headline">¶</a></h2>
+<p>When several clients are requesting the same page Varnish will send
+one request to the backend and place the others on hold while fetching
+one copy from the back end. In some products this is called request
+coalescing and Varnish does this automatically.</p>
+<p>If you are serving thousands of hits per second the queue of waiting
+requests can get huge. There are two potential problems - one is a
+thundering herd problem - suddenly releasing a thousand threads to
+serve content might send the load sky high. Secondly - nobody likes to
+wait. To deal with this we can instruct Varnish to keep
+the objects in cache beyond their TTL and to serve the waiting
+requests somewhat stale content.</p>
+<p>So, in order to serve stale content we must first have some content to
+serve. So to make Varnish keep all objects for 30 minutes beyond their
+TTL use the following VCL::</p>
+<div class="highlight-python"><pre>sub vcl_fetch {
+  set beresp.grace = 30m;
+}</pre>
+</div>
+<p>Varnish still won't serve the stale objects. In order to enable
+Varnish to actually serve the stale object we must enable this on the
+request. Lets us say that we accept serving 15s old object.:</p>
+<div class="highlight-python"><pre>sub vcl_recv {
+  set req.grace = 15s;
+}</pre>
+</div>
+<p>You might wonder why we should keep the objects in the cache for 30
+minutes if we are unable to serve them? Well, if you have enabled
+<a class="reference internal" href="advanced_backend_servers.html#tutorial-advanced-backend-servers-health"><em>Health checks</em></a> you can check if the
+backend is sick and if it is we can serve the stale content for a bit
+longer.:</p>
+<div class="highlight-python"><pre>if (! req.backend.healthy) {
+   set req.grace = 5m;
+} else {
+   set req.grace = 15s;
+}</pre>
+</div>
+<dl class="docutils">
+<dt>So, to sum up, grace mode solves two problems:</dt>
+<dd><ul class="first last simple">
+<li>it serves stale content to avoid request pile-up.</li>
+<li>it serves stale content if the backend is not healthy.</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="saint-mode">
+<h2>Saint mode<a class="headerlink" href="#saint-mode" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes servers get flaky. They start throwing out random
+errors. You can instruct Varnish to try to handle this in a
+more-than-graceful way - enter <em>Saint mode</em>. Saint mode enables you to
+discard a certain page from one backend server and either try another
+server or serve stale content from cache. Lets have a look at how this
+can be enabled in VCL::</p>
+<div class="highlight-python"><pre>sub vcl_fetch {
+  if (beresp.status == 500) {
+    set beresp.saintmode = 10s;
+    restart;
+  }
+  set beresp.grace = 5m;
+}</pre>
+</div>
+<p>When we set beresp.saintmode to 10 seconds Varnish will not ask <em>that</em>
+server for URL for 10 seconds. A blacklist, more or less. Also a
+restart is performed so if you have other backends capable of serving
+that content Varnish will try those. When you are out of backends
+Varnish will serve the content from its stale cache.</p>
+<p>This can really be a life saver.</p>
+</div>
+<div class="section" id="known-limitations-on-grace-and-saint-mode">
+<h2>Known limitations on grace- and saint mode<a class="headerlink" href="#known-limitations-on-grace-and-saint-mode" title="Permalink to this headline">¶</a></h2>
+<p>If your request fails while it is being fetched you're thrown into
+vcl_error. vcl_error has access to a rather limited set of data so you
+can't enable saint mode or grace mode here. This will be addressed in a
+future release but a work-around available.</p>
+<ul class="simple">
+<li>Declare a backend that is always sick.</li>
+<li>Set a magic marker in vcl_error</li>
+<li>Restart the transaction</li>
+<li>Note the magic marker in vcl_recv and set the backend to the one mentioned</li>
+<li>Varnish will now serve stale data is any is available</li>
+</ul>
+</div>
+<div class="section" id="god-mode">
+<h2>God mode<a class="headerlink" href="#god-mode" title="Permalink to this headline">¶</a></h2>
+<p>Not implemented yet. :-)</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Misbehaving servers</a><ul>
+<li><a class="reference internal" href="#grace-mode">Grace mode</a></li>
+<li><a class="reference internal" href="#saint-mode">Saint mode</a></li>
+<li><a class="reference internal" href="#known-limitations-on-grace-and-saint-mode">Known limitations on grace- and saint mode</a></li>
+<li><a class="reference internal" href="#god-mode">God mode</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="advanced_backend_servers.html"
+                        title="previous chapter">Advanced Backend configuration</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="advanced_topics.html"
+                        title="next chapter">Advanced topics</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/handling_misbehaving_servers.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="advanced_topics.html" title="Advanced topics"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="advanced_backend_servers.html" title="Advanced Backend configuration"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

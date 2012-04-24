@@ -1,0 +1,306 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Varnish Configuration Language - VCL &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Using Varnish" href="index.html" />
+    <link rel="next" title="Statistics" href="statistics.html" />
+    <link rel="prev" title="Put Varnish on port 80" href="putting_varnish_on_port_80.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="statistics.html" title="Statistics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="putting_varnish_on_port_80.html" title="Put Varnish on port 80"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="varnish-configuration-language-vcl">
+<h1>Varnish Configuration Language - VCL<a class="headerlink" href="#varnish-configuration-language-vcl" title="Permalink to this headline">¶</a></h1>
+<p>Varnish has a great configuration system. Most other systems use
+configuration directives, where you basically turn on and off lots of
+switches. Varnish uses a domain specific language called Varnish
+Configuration Language, or VCL for short. Varnish translates this
+configuration into binary code which is then executed when requests
+arrive.</p>
+<p>The VCL files are divided into subroutines. The different subroutines
+are executed at different times. One is executed when we get the
+request, another when files are fetched from the backend server.</p>
+<p>Varnish will execute these subroutines of code at different stages of
+its work. Because it is code it is execute line by line precedence
+isn't a problem. At some point you call an action in this subroutine
+and then the execution of the subroutine stops.</p>
+<p>If you don't call an action in your subroutine and it reaches the end
+Varnish will execute some built in VCL code. You will see this VCL
+code commented out in default.vcl.</p>
+<p>99% of all the changes you'll need to do will be done in two of these
+subroutines. <em>vcl_recv</em> and <em>vcl_fetch</em>.</p>
+<div class="section" id="vcl-recv">
+<h2>vcl_recv<a class="headerlink" href="#vcl-recv" title="Permalink to this headline">¶</a></h2>
+<p>vcl_recv (yes, we're skimpy with characters, it's Unix) is called at
+the beginning of a request, after the complete request has been
+received and parsed.  Its purpose is to decide whether or not to serve
+the request, how to do it, and, if applicable, which backend to use.</p>
+<p>In vcl_recv you can also alter the request. Typically you can alter
+the cookies and add and remove request headers.</p>
+<p>Note that in vcl_recv only the request object, req is available.</p>
+</div>
+<div class="section" id="vcl-fetch">
+<h2>vcl_fetch<a class="headerlink" href="#vcl-fetch" title="Permalink to this headline">¶</a></h2>
+<p>vcl_fetch is called <em>after</em> a document has been successfully retrieved
+from the backend. Normal tasks her are to alter the response headers,
+trigger ESI processing, try alternate backend servers in case the
+request failed.</p>
+<p>In vcl_fetch you still have the request object, req, available. There
+is also a <em>backend response</em>, beresp. beresp will contain the HTTP
+headers from the backend.</p>
+</div>
+<div class="section" id="actions">
+<h2>actions<a class="headerlink" href="#actions" title="Permalink to this headline">¶</a></h2>
+<p>The most common actions to return are these:</p>
+<dl class="docutils">
+<dt><em>pass</em></dt>
+<dd>When you return pass the request and subsequent response will be passed to
+and from the backend server. It won't be cached. pass can be returned from
+vcl_recv</dd>
+<dt><em>hit_for_pass</em></dt>
+<dd>Similar to pass, but accessible from vcl_fetch. Unlike pass, hit_for_pass
+will create a hitforpass object in the cache. This has the side-effect of
+caching the decision not to cache. This is to allow would-be uncachable
+requests to be passed to the backend at the same time. The same logic is
+not necessary in vcl_recv because this happens before any potential
+queueing for an object takes place.</dd>
+<dt><em>lookup</em></dt>
+<dd>When you return lookup from vcl_recv you tell Varnish to deliver content
+from cache even if the request othervise indicates that the request
+should be passed. You can't return lookup from vcl_fetch.</dd>
+<dt><em>pipe</em></dt>
+<dd>Pipe can be returned from vcl_recv as well. Pipe short circuits the
+client and the backend connections and Varnish will just sit there
+and shuffle bytes back and forth. Varnish will not look at the data being
+send back and forth - so your logs will be incomplete.
+Beware that with HTTP 1.1 a client can send several requests on the same
+connection and so you should instruct Varnish to add a &quot;Connection: close&quot;
+header before actually returning pipe.</dd>
+<dt><em>deliver</em></dt>
+<dd>Deliver the cached object to the client.  Usually returned from vcl_fetch.</dd>
+</dl>
+</div>
+<div class="section" id="requests-responses-and-objects">
+<h2>Requests, responses and objects<a class="headerlink" href="#requests-responses-and-objects" title="Permalink to this headline">¶</a></h2>
+<p>In VCL, there are three important data structures. The request, coming
+from the client, the response coming from the backend server and the
+object, stored in cache.</p>
+<p>In VCL you should know the following structures.</p>
+<dl class="docutils">
+<dt><em>req</em></dt>
+<dd>The request object. When Varnish has received the request the req object is
+created and populated. Most of the work you do in vcl_recv you
+do on or with the req object.</dd>
+<dt><em>beresp</em></dt>
+<dd>The backend respons object. It contains the headers of the object
+comming from the backend. Most of the work you do in vcl_fetch you
+do on the beresp object.</dd>
+<dt><em>obj</em></dt>
+<dd>The cached object. Mostly a read only object that resides in memory.
+obj.ttl is writable, the rest is read only.</dd>
+</dl>
+</div>
+<div class="section" id="operators">
+<h2>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h2>
+<p>The following operators are available in VCL. See the examples further
+down for, uhm, examples.</p>
+<dl class="docutils">
+<dt>=</dt>
+<dd>Assignment operator.</dd>
+</dl>
+<dl class="docutils">
+<dt>==</dt>
+<dd>Comparison.</dd>
+</dl>
+<dl class="docutils">
+<dt>~</dt>
+<dd>Match. Can either be used with regular expressions or ACLs.</dd>
+</dl>
+<dl class="docutils">
+<dt>!</dt>
+<dd>Negation.</dd>
+</dl>
+<dl class="docutils">
+<dt>&amp;&amp;</dt>
+<dd>Logical <em>and</em></dd>
+</dl>
+<dl class="docutils">
+<dt>||</dt>
+<dd>Logical <em>or</em></dd>
+</dl>
+</div>
+<div class="section" id="example-1-manipulating-headers">
+<h2>Example 1 - manipulating headers<a class="headerlink" href="#example-1-manipulating-headers" title="Permalink to this headline">¶</a></h2>
+<p>Lets say we want to remove the cookie for all objects in the /static
+directory of our web server::</p>
+<div class="highlight-python"><pre>sub vcl_recv {
+  if (req.url ~ "^/images") {
+    unset req.http.cookie;
+  }
+}</pre>
+</div>
+<p>Now, when the request is handled to the backend server there will be
+no cookie header. The interesting line is the one with the
+if-statement. It matches the URL, taken from the request object, and
+matches it against the regular expression. Note the match operator. If
+it matches the Cookie: header of the request is unset (deleted).</p>
+</div>
+<div class="section" id="example-2-manipulating-beresp">
+<h2>Example 2 - manipulating beresp<a class="headerlink" href="#example-2-manipulating-beresp" title="Permalink to this headline">¶</a></h2>
+<p>Here we override the TTL of a object comming from the backend if it
+matches certain criteria::</p>
+<div class="highlight-python"><pre>sub vcl_fetch {
+   if (req.url ~ "\.(png|gif|jpg)$") {
+     unset beresp.http.set-cookie;
+     set beresp.ttl = 1h;
+  }
+}</pre>
+</div>
+</div>
+<div class="section" id="example-3-acls">
+<h2>Example 3 - ACLs<a class="headerlink" href="#example-3-acls" title="Permalink to this headline">¶</a></h2>
+<p>You create a named access control list with the <em>acl</em> keyword. You can match
+the IP address of the client against an ACL with the match operator.:</p>
+<div class="highlight-python"><pre># Who is allowed to purge....
+acl local {
+    "localhost";
+    "192.168.1.0"/24; /* and everyone on the local network */
+    ! "192.168.1.23"; /* except for the dialin router */
+}
+
+sub vcl_recv {
+  if (req.request == "PURGE") {
+    if (client.ip ~ local) {
+       return(lookup);
+    }
+  }
+}
+
+sub vcl_hit {
+   if (req.request == "PURGE") {
+     set obj.ttl = 0s;
+     error 200 "Purged.";
+    }
+}
+
+sub vcl_miss {
+  if (req.request == "PURGE") {
+    error 404 "Not in cache.";
+  }
+}</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Varnish Configuration Language - VCL</a><ul>
+<li><a class="reference internal" href="#vcl-recv">vcl_recv</a></li>
+<li><a class="reference internal" href="#vcl-fetch">vcl_fetch</a></li>
+<li><a class="reference internal" href="#actions">actions</a></li>
+<li><a class="reference internal" href="#requests-responses-and-objects">Requests, responses and objects</a></li>
+<li><a class="reference internal" href="#operators">Operators</a></li>
+<li><a class="reference internal" href="#example-1-manipulating-headers">Example 1 - manipulating headers</a></li>
+<li><a class="reference internal" href="#example-2-manipulating-beresp">Example 2 - manipulating beresp</a></li>
+<li><a class="reference internal" href="#example-3-acls">Example 3 - ACLs</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="putting_varnish_on_port_80.html"
+                        title="previous chapter">Put Varnish on port 80</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="statistics.html"
+                        title="next chapter">Statistics</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/vcl.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="statistics.html" title="Statistics"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="putting_varnish_on_port_80.html" title="Put Varnish on port 80"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

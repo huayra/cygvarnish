@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>VMOD - Varnish Modules &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="The Varnish Reference Manual" href="index.html" />
+    <link rel="next" title="vmod_std" href="vmod_std.html" />
+    <link rel="prev" title="Shared Memory Logging and Statistics" href="shmem.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vmod_std.html" title="vmod_std"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="shmem.html" title="Shared Memory Logging and Statistics"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="vmod-varnish-modules">
+<h1>VMOD - Varnish Modules<a class="headerlink" href="#vmod-varnish-modules" title="Permalink to this headline">¶</a></h1>
+<p>For all you can do in VCL, there are things you can not do.
+Look an IP number up in a database file for instance.
+VCL provides for inline C code, and there you can do everything,
+but it is not a convenient or even readable way to solve such
+problems.</p>
+<p>This is where VMODs come into the picture:   A VMOD is a shared
+library with some C functions which can be called from VCL code.</p>
+<p>For instance:</p>
+<div class="highlight-python"><pre>import std;
+
+sub vcl_deliver {
+        set resp.http.foo = std.toupper(req.url);
+}</pre>
+</div>
+<p>The &quot;std&quot; vmod is one you get with Varnish, it will always be there
+and we will put &quot;boutique&quot; functions in it, such as the &quot;toupper&quot;
+function shown above.  The full contents of the &quot;std&quot; module is
+documented in XXX:TBW.</p>
+<p>This part of the manual is about how you go about writing your own
+VMOD, how the language interface between C and VCC works etc.  This
+explanation will use the &quot;std&quot; VMOD as example, having a varnish
+source tree handy may be a good idea.</p>
+<div class="section" id="the-vmod-vcc-file">
+<h2>The vmod.vcc file<a class="headerlink" href="#the-vmod-vcc-file" title="Permalink to this headline">¶</a></h2>
+<p>The interface between your VMOD and the VCL compiler (&quot;VCC&quot;) and the
+VCL runtime (&quot;VRT&quot;) is defined in the vmod.vcc file which a python
+script called &quot;vmod.py&quot; turns into thaumathurgically challenged C
+data structures that does all the hard work.</p>
+<p>The std VMODs vmod.vcc file looks somewhat like this:</p>
+<div class="highlight-python"><pre>Module std
+Init init_function
+Function STRING toupper(PRIV_CALL, STRING_LIST)
+Function STRING tolower(PRIV_VCL, STRING_LIST)
+Function VOID set_ip_tos(INT)</pre>
+</div>
+<p>The first line gives the name of the module, nothing special there.</p>
+<p>The second line specifies an optional &quot;Init&quot; function, which will
+be called whenever a VCL program which imports this VMOD is loaded.
+This gives a chance to initialize the module before any of the
+functions it implements are called.</p>
+<p>The next three lines specify two functions in the VMOD, along with the
+types of the arguments, and that is probably where the hardest bit
+of writing a VMOD is to be found, so we will talk about that at length
+in a moment.</p>
+<p>Notice that the third function returns VOID, that makes it a &quot;procedure&quot;
+in VCL lingo, meaning that it cannot be used in expressions, right
+side of assignments and such places.  Instead it can be used as a
+primary action, something functions which return a value can not:</p>
+<div class="highlight-python"><pre>sub vcl_recv {
+        std.set_ip_tos(32);
+}</pre>
+</div>
+<p>Running vmod.py on the vmod.vcc file, produces an &quot;vcc_if.c&quot; and
+&quot;vcc_if.h&quot; files, which you must use to build your shared library
+file.</p>
+<p>Forget about vcc_if.c everywhere but your Makefile, you will never
+need to care about its contents, and you should certainly never
+modify it, that voids your warranty instantly.</p>
+<p>But vcc_if.h is important for you, it contains the prototypes for
+the functions you want to export to VCL.</p>
+<p>For the std VMOD, the compiled vcc_if.h file looks like this:</p>
+<div class="highlight-python"><pre>struct sess;
+struct VCL_conf;
+const char * vmod_toupper(struct sess *, struct vmod_priv *, const char *, ...);
+const char * vmod_tolower(struct sess *, struct vmod_priv *, const char *, ...);
+int meta_function(void **, const struct VCL_conf *);</pre>
+</div>
+<p>Those are your C prototypes.  Notice the <tt class="docutils literal"><span class="pre">vmod_</span></tt> prefix on the function
+names and the C-types as return types and arguments.</p>
+</div>
+<div class="section" id="vcl-and-c-data-types">
+<h2>VCL and C data types<a class="headerlink" href="#vcl-and-c-data-types" title="Permalink to this headline">¶</a></h2>
+<p>VCL data types are targeted at the job, so for instance, we have data
+types like &quot;DURATION&quot; and &quot;HEADER&quot;, but they all have some kind of C
+language representation.  Here is a description of them, from simple
+to nasty.</p>
+<dl class="docutils">
+<dt>INT</dt>
+<dd><p class="first">C-type: <tt class="docutils literal"><span class="pre">int</span></tt></p>
+<p class="last">An integer as we know and love them.</p>
+</dd>
+<dt>REAL</dt>
+<dd><p class="first">C-type: <tt class="docutils literal"><span class="pre">double</span></tt></p>
+<p class="last">A floating point value</p>
+</dd>
+<dt>DURATION</dt>
+<dd><p class="first">C-type: <tt class="docutils literal"><span class="pre">double</span></tt></p>
+<p>Units: seconds</p>
+<p class="last">A time interval, as in &quot;25 minutes&quot;.</p>
+</dd>
+<dt>TIME</dt>
+<dd><p class="first">C-type: <tt class="docutils literal"><span class="pre">double</span></tt></p>
+<p>Units: seconds since UNIX epoch</p>
+<p class="last">An absolute time, as in &quot;Mon Sep 13 19:06:01 UTC 2010&quot;.</p>
+</dd>
+<dt>STRING</dt>
+<dd><p class="first">C-type: <tt class="docutils literal"><span class="pre">const</span> <span class="pre">char</span> <span class="pre">*</span></tt></p>
+<p>A NUL-terminated text-string.</p>
+<p>Can be NULL to indicate that the nonexistent string, for
+instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mymod</span><span class="o">.</span><span class="n">foo</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">foobar</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>If there were no &quot;foobar&quot; HTTP header, the vmod_foo()
+function would be passed a NULL pointer as argument.</p>
+<p class="last">When used as a return value, the producing function is
+responsible for arranging memory management.  Either by
+freeing the string later by whatever means available or
+by using storage allocated from the session or worker
+workspaces.</p>
+</dd>
+<dt>STRING_LIST</dt>
+<dd><p class="first">C-type: <tt class="docutils literal"><span class="pre">const</span> <span class="pre">char</span> <span class="pre">*,</span> <span class="pre">...</span></tt></p>
+<p>A multi-component text-string.  We try very hard to avoid
+doing text-processing in Varnish, and this is one way we
+do that, by not editing separate pieces of a sting together
+to one string, until we need to.</p>
+<p>Consider this contrived example:</p>
+<div class="highlight-python"><pre>set bereq.http.foo = std.toupper(req.http.foo + req.http.bar);</pre>
+</div>
+<p>The usual way to do this, would be be to allocate memory for
+the concatenated string, then pass that to <tt class="docutils literal"><span class="pre">toupper()</span></tt> which in
+turn would return another freshly allocated string with the
+modified result.  Remember: strings in VCL are <tt class="docutils literal"><span class="pre">const</span></tt>, we
+cannot just modify the string in place.</p>
+<p>What we do instead, is declare that <tt class="docutils literal"><span class="pre">toupper()</span></tt> takes a &quot;STRING_LIST&quot;
+as argument.  This makes the C function implementing <tt class="docutils literal"><span class="pre">toupper()</span></tt>
+a vararg function (see the prototype above) and responsible for
+considering all the <tt class="docutils literal"><span class="pre">const</span> <span class="pre">char</span> <span class="pre">*</span></tt> arguments it finds, until the
+magic marker &quot;vrt_magic_string_end&quot; is encountered.</p>
+<p>Bear in mind that the individual strings in a STRING_LIST can be
+NULL, as described under STRING, that is why we do not use NULL
+as the terminator.</p>
+<p>Right now we only support STRING_LIST being the last argument to
+a function, we may relax that at a latter time.</p>
+<p class="last">If you don't want to bother with STRING_LIST, just use STRING
+and make sure your sess_workspace param is big enough.</p>
+</dd>
+<dt>PRIV_VCL</dt>
+<dd>See below</dd>
+<dt>PRIV_CALL</dt>
+<dd>See below</dd>
+<dt>VOID</dt>
+<dd><p class="first">C-type: <tt class="docutils literal"><span class="pre">void</span></tt></p>
+<p class="last">Can only be used for return-value, which makes the function a VCL
+procedure.</p>
+</dd>
+<dt>IP, BOOL, HEADER</dt>
+<dd>XXX: these types are not released for use in vmods yet.</dd>
+</dl>
+</div>
+<div class="section" id="private-pointers">
+<h2>Private Pointers<a class="headerlink" href="#private-pointers" title="Permalink to this headline">¶</a></h2>
+<p>It is often useful for library functions to maintain local state,
+this can be anything from a precompiled regexp to open file descriptors
+and vast data structures.</p>
+<p>The VCL compiler supports two levels of private pointers, &quot;per call&quot;
+and &quot;per VCL&quot;</p>
+<p>&quot;per call&quot; private pointers are useful to cache/store state relative
+to the specific call or its arguments, for instance a compiled regular
+expression specific to a regsub() statement or a simply caching the
+last output of some expensive lookup.</p>
+<p>&quot;per vcl&quot; private pointers are useful for such global state that
+applies to all calls in this VCL, for instance flags that determine
+if regular expressions are case-sensitive in this vmod or similar.</p>
+<p>The way it works in the vmod code, is that a <tt class="docutils literal"><span class="pre">struct</span> <span class="pre">vmod_priv</span> <span class="pre">*</span></tt> is
+passed to the functions where argument type PRIV_VCL or PRIV_CALL
+is specified.</p>
+<p>This structure contains two members:</p>
+<div class="highlight-python"><pre>typedef void vmod_priv_free_f(void *);
+struct vmod_priv {
+        void                    *priv;
+        vmod_priv_free_f        *free;
+};</pre>
+</div>
+<p>The &quot;priv&quot; element can be used for whatever the vmod code wants to
+use it for, it defaults to a NULL pointer.</p>
+<p>The &quot;free&quot; element defaults to NULL, and it is the modules responsibility
+to set it to a suitable function, which can clean up whatever the &quot;priv&quot;
+pointer points to.</p>
+<p>When a VCL program is discarded, all private pointers are checked
+to see if both the &quot;priv&quot; and &quot;free&quot; elements are non-NULL, and if
+they are, the &quot;free&quot; function will be called with the &quot;priv&quot; pointer
+as only argument.  The &quot;per vcl&quot; pointers is guaranteed to be the
+last one inspected.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">VMOD - Varnish Modules</a><ul>
+<li><a class="reference internal" href="#the-vmod-vcc-file">The vmod.vcc file</a></li>
+<li><a class="reference internal" href="#vcl-and-c-data-types">VCL and C data types</a></li>
+<li><a class="reference internal" href="#private-pointers">Private Pointers</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="shmem.html"
+                        title="previous chapter">Shared Memory Logging and Statistics</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="vmod_std.html"
+                        title="next chapter">vmod_std</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/reference/vmod.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vmod_std.html" title="vmod_std"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="shmem.html" title="Shared Memory Logging and Statistics"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

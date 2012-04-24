@@ -1,0 +1,223 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Purging and banning &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Using Varnish" href="index.html" />
+    <link rel="next" title="Edge Side Includes" href="esi.html" />
+    <link rel="prev" title="Vary" href="vary.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="esi.html" title="Edge Side Includes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vary.html" title="Vary"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="purging-and-banning">
+<span id="tutorial-purging"></span><h1>Purging and banning<a class="headerlink" href="#purging-and-banning" title="Permalink to this headline">¶</a></h1>
+<p>One of the most effective way of increasing your hit ratio is to
+increase the time-to-live (ttl) of your objects. But, as you're aware
+of, in this twitterific day of age serving content that is outdated is
+bad for business.</p>
+<p>The solution is to notify Varnish when there is fresh content
+available. This can be done through two mechanisms. HTTP purging and
+bans. First, let me explain the HTTP purges.</p>
+<div class="section" id="http-purges">
+<h2>HTTP Purges<a class="headerlink" href="#http-purges" title="Permalink to this headline">¶</a></h2>
+<p>A <em>purge</em> is what happens when you pick out an object from the cache
+and discard it along with its variants. Usually a purge is invoked
+through HTTP with the method PURGE.</p>
+<p>An HTTP purge is similar to an HTTP GET request, except that the
+<em>method</em> is PURGE. Actually you can call the method whatever you'd
+like, but most people refer to this as purging. Squid supports the
+same mechanism. In order to support purging in Varnish you need the
+following VCL in place:</p>
+<div class="highlight-python"><pre>acl purge {
+        "localhost";
+        "192.168.55.0/24";
+}
+
+sub vcl_recv {
+        # allow PURGE from localhost and 192.168.55...
+
+        if (req.request == "PURGE") {
+                if (!client.ip ~ purge) {
+                        error 405 "Not allowed.";
+                }
+                return (lookup);
+        }
+}
+
+sub vcl_hit {
+        if (req.request == "PURGE") {
+                purge;
+                error 200 "Purged.";
+        }
+}
+
+sub vcl_miss {
+        if (req.request == "PURGE") {
+                purge;
+                error 200 "Purged.";
+        }
+}</pre>
+</div>
+<p>As you can see we have used to new VCL subroutines, vcl_hit and
+vcl_miss. When we call lookup Varnish will try to lookup the object in
+its cache. It will either hit an object or miss it and so the
+corresponding subroutine is called. In vcl_hit the object that is
+stored in cache is available and we can set the TTL.</p>
+<p>So for example.com to invalidate their front page they would call out
+to Varnish like this:</p>
+<div class="highlight-python"><pre>PURGE / HTTP/1.0
+Host: example.com</pre>
+</div>
+<p>And Varnish would then discard the front page. This will remove all
+variants as defined by Vary.</p>
+</div>
+<div class="section" id="bans">
+<h2>Bans<a class="headerlink" href="#bans" title="Permalink to this headline">¶</a></h2>
+<p>There is another way to invalidate content. Bans. You can think of
+bans as a sort of a filter. You <em>ban</em> certain content from being
+served from your cache. You can ban content based on any metadata we
+have.</p>
+<p>Support for bans is built into Varnish and available in the CLI
+interface. For VG to ban every png object belonging on example.com
+they could issue:</p>
+<div class="highlight-python"><pre>ban req.http.host == "example.com" &amp;&amp; req.http.url ~ "\.png$"</pre>
+</div>
+<p>Quite powerful, really.</p>
+<p>Bans are checked when we hit an object in the cache, but before we
+deliver it. <em>An object is only checked against newer bans</em>.</p>
+<p>Bans that only match against beresp.* are also processed by a
+background worker threads called the <em>ban lurker</em>. The ban lurker will
+walk the heap and try to match objects and will evict the matching
+objects. How aggressive the ban lurker is can be controlled by the
+parameter ban_lurker_sleep.</p>
+<p>Bans that are older then the oldest objects in the cache are discarded
+without evaluation.  If you have a lot of objects with long TTL, that
+are seldom accessed you might accumulate a lot of bans. This might
+impact CPU usage and thereby performance.</p>
+<p>You can also add bans to Varnish via HTTP. Doing so requires a bit of VCL:</p>
+<div class="highlight-python"><pre>sub vcl_recv {
+        if (req.request == "BAN") {
+                # Same ACL check as above:
+                if (!client.ip ~ purge) {
+                        error 405 "Not allowed.";
+                }
+                ban("req.http.host == " + req.http.host +
+                      "&amp;&amp; req.url == " + req.url);
+
+                # Throw a synthetic page so the
+                # request won't go to the backend.
+                error 200 "Ban added";
+        }
+}</pre>
+</div>
+<p>This VCL sniplet enables Varnish to handle an HTTP BAN method, adding a
+ban on the URL, including the host part.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Purging and banning</a><ul>
+<li><a class="reference internal" href="#http-purges">HTTP Purges</a></li>
+<li><a class="reference internal" href="#bans">Bans</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="vary.html"
+                        title="previous chapter">Vary</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="esi.html"
+                        title="next chapter">Edge Side Includes</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/purging.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="esi.html" title="Edge Side Includes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vary.html" title="Vary"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

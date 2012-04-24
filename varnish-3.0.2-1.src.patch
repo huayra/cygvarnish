@@ -1,0 +1,555 @@
+--- origsrc/varnish-3.0.2/ChangeLog	2011-01-24 13:41:42.000000000 +0100
++++ src/varnish-3.0.2/ChangeLog	2011-11-07 00:44:26.542558900 +0100
+@@ -1,118 +0,0 @@
+-
+-Please note that this file is no longer maintained.  Please refer to the
+-changes files in doc/
+-
+-Change log for Varnish 1.0.4
+-
+-Changes between 1.0.3 and 1.0.4
+-
+-varnishd
+-
+-  • The request workflow has been redesigned to simplify request processing and
+-    eliminate code duplication. All codepaths which need to speak HTTP now
+-    share a single implementation of the protocol. Some new VCL hooks have been
+-    added, though they aren't much use yet. The only real user-visible change
+-    should be that Varnish now handles persistent backend connections correctly
+-    (see ticket #56).
+-
+-  • Support for multiple listen addresses has been added.
+-
+-  • An "include" facility has been added to VCL, allowing VCL code to pull in
+-    code fragments from multiple files.
+-
+-  • Multiple definitions of the same VCL function are now concatenated into one
+-    in the order in which they appear in the source. This simplifies the
+-    mechanism for falling back to the built-in default for cases which aren't
+-    handled in custom code, and facilitates modularization.
+-
+-  • The code used to format management command arguments before passing them on
+-    to the child process would underestimate the amount of space needed to hold
+-    each argument once quotes and special characters were properly escaped,
+-    resulting in a buffer overflow. This has been corrected.
+-
+-  • The VCL compiler has been overhauled. Several memory leaks have been
+-    plugged, and error detection and reporting has been improved throughout.
+-    Parts of the compiler have been refactored to simplify future extension of
+-    the language.
+-
+-  • A bug in the VCL compiler which resulted in incorrect parsing of the
+-    decrement (-=) operator has been fixed.
+-
+-  • A new -C command-line option has been added which causes varnishd to
+-    compile the VCL code (either from a file specified with -f or the built-in
+-    default), print the resulting C code and exit.
+-
+-  • When processing a backend response using chunked encoding, if a chunk
+-    header crosses a read buffer boundary, read additional bytes from the
+-    backend connection until the chunk header is complete.
+-
+-  • A new ping_interval run-time parameter controls how often the management
+-    process checks that the worker process is alive.
+-
+-  • A bug which would cause the worker process to dereference a NULL pointer
+-    and crash if the backend did not respond has been fixed.
+-
+-  • In some cases, such as when they are used by AJAX applications to
+-    circumvent Internet Explorer's over-eager disk cache, it may be desirable
+-    to cache POST requests. However, the code path responsible for delivering
+-    objects from cache would only transmit the response body when replying to a
+-    GET request. This has been extended to also apply to POST.
+-
+-    This should be revisited at a later date to allow VCL code to control
+-    whether the body is delivered.
+-
+-  • Varnish now respects Cache-control: s-maxage, and prefers it to
+-    Cache-control: max-age if both are present.
+-
+-    This should be revisited at a later date to allow VCL code to control which
+-    headers are used and how they are interpreted.
+-
+-  • When loading a new VCL script, the management process will now load the
+-    compiled object to verify that it links correctly before instructing the
+-    worker process to load it.
+-
+-  • A new -P command-line options has been added which causes varnishd to
+-    create a PID file.
+-
+-  • The sendfile_threshold run-time parameter's default value has been set to
+-    infinity after a variety of sendfile()-related bugs were discovered on
+-    several platforms.
+-
+-varnishlog
+-
+-  • When grouping log entries by request, varnishlog attempts to collapse the
+-    log entry for a call to a VCL function with the log entry for the
+-    corresponding return from VCL. When two VCL calls were made in succession,
+-    varnishlog would incorrectly omit the newline between the two calls (see
+-    ticket #95).
+-
+-  • New -D and -P command-line options have been added to daemonize and create
+-    a pidfile, respectively.
+-
+-varnishncsa
+-
+-  • The formatting callback has been largely rewritten for clarity, robustness
+-    and efficiency.
+-
+-    If a request included a Host: header, construct and output an absolute URL.
+-    This makes varnishncsa output from servers which handle multiple virtual
+-    hosts far more useful.
+-
+-Documentation
+-
+-  • The documentation—especially the VCL documentation—has been greatly
+-    extended and improved.
+-
+-Build system
+-
+-  • The name and location of the curses or ncurses library is now correctly
+-    detected by the configure script instead of being hardcoded into affected
+-    Makefiles. This allows Varnish to build correctly on a wider range of
+-    platforms.
+-
+-  • Compatibility shims for clock_gettime() are now correctly applied where
+-    needed, allowing Varnish to build on MacOS X.
+-
+-  • The autogen.sh script will now correctly detect and warn about automake
+-    versions which are known not to work correctly.
+-
+--- origsrc/varnish-3.0.2/Makefile.am	2011-10-04 13:31:55.000000000 +0200
++++ src/varnish-3.0.2/Makefile.am	2011-11-06 22:29:25.753964400 +0100
+@@ -2,7 +2,7 @@
+ 
+ ACLOCAL_AMFLAGS = -I m4
+ 
+-SUBDIRS = include lib bin man etc doc
++SUBDIRS = include lib bin lib/libvmod_std man etc doc
+ 
+ SUBDIRS += redhat
+ 
+--- origsrc/varnish-3.0.2/bin/varnishd/Makefile.am	2011-10-24 09:25:09.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishd/Makefile.am	2011-11-06 22:29:25.785340600 +0100
+@@ -110,9 +110,15 @@ varnishd_LDADD = \
+ 	$(top_builddir)/lib/libvgz/libvgz.la \
+ 	@JEMALLOC_LDADD@ \
+ 	@PCRE_LIBS@ \
+-	${DL_LIBS} ${PTHREAD_LIBS} ${NET_LIBS} ${LIBM} ${LIBUMEM}
++	${DL_LIBS} ${PTHREAD_LIBS} ${NET_LIBS} ${LIBM} ${LIBUMEM} ${CYGWIN_varnishd_LDFLAGS}
+ 
+ EXTRA_DIST = default.vcl
++
++EXTRA_SCRIPTS = 
++
++sbin_SCRIPTS = ${CYGWIN_libvarnishd_OBJECTS}
++
++
+ DISTCLEANFILES = default_vcl.h
+ 
+ #
+--- origsrc/varnish-3.0.2/bin/varnishd/mgt_vcc.c	2011-10-24 09:25:13.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishd/mgt_vcc.c	2011-11-06 22:29:25.801028700 +0100
+@@ -174,7 +174,24 @@ run_vcc(void *priv)
+ static void
+ run_cc(void *priv)
+ {
+-	(void)execl("/bin/sh", "/bin/sh", "-c", priv, NULL);
++	int i;
++#if defined(__CYGWIN__)
++	if( access( "/bin/sh", X_OK ) != -1 ) 
++	{
++		i=execl("/bin/sh", "/bin/sh", "-c", priv, NULL);
++	}
++	else
++	{
++		i=execl(getenv("COMSPEC"), getenv("COMSPEC"), "/c", priv, NULL);
++	}
++#else
++	i=execl("/bin/sh", "/bin/sh", "-c", priv, NULL);
++#endif
++	if(i)
++	{
++		printf("Error %i in run_cc: %s\n",errno,strerror(errno));
++		printf("run_cc command: %s\n", priv);
++	}
+ }
+ 
+ /*--------------------------------------------------------------------
+--- origsrc/varnish-3.0.2/bin/varnishtest/Makefile.am	2011-08-29 10:45:24.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/Makefile.am	2011-11-06 22:29:25.832404900 +0100
+@@ -1,8 +1,9 @@
+ #
+ 
+-TESTS_PARALLELISM = 3
++TESTS_PARALLELISM = 1
++TEST_DURATION = 200
+ check: varnishtest
+-	./varnishtest -i -j$(TESTS_PARALLELISM) $(srcdir)/tests/*.vtc
++	./varnishtest -i -k -j$(TESTS_PARALLELISM) -t$(TEST_DURATION) $(srcdir)/tests/*.vtc
+ 	@echo "==================="
+ 	@echo "All tests succeeded"
+ 	@echo "==================="
+--- origsrc/varnish-3.0.2/bin/varnishtest/tests/m00000.vtc	2011-08-29 10:45:24.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/tests/m00000.vtc	2011-11-06 22:29:25.848093000 +0100
+@@ -6,7 +6,7 @@ server s1 {
+ } -start
+ 
+ varnish v1 -vcl+backend {
+-	import std from "${topbuild}/lib/libvmod_std/.libs/libvmod_std.so" ;
++	import std from "${topbuild}/lib/libvmod_std/.libs/cygvmod_std.dll" ;
+ 
+ 	sub vcl_deliver {
+ 		set resp.http.foo = std.toupper(resp.http.foo);
+--- origsrc/varnish-3.0.2/bin/varnishtest/tests/m00001.vtc	2011-08-29 10:45:24.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/tests/m00001.vtc	2011-11-06 22:29:25.848093000 +0100
+@@ -6,7 +6,7 @@ server s1 {
+ } -start
+ 
+ varnish v1 -arg "-pthread_pools=1" -vcl+backend {
+-	import std from "${topbuild}/lib/libvmod_std/.libs/libvmod_std.so" ;
++	import std from "${topbuild}/lib/libvmod_std/.libs/cygvmod_std.dll" ;
+ 
+ 	sub vcl_deliver {
+ 		set resp.http.foo = std.toupper(resp.http.foo);
+--- origsrc/varnish-3.0.2/bin/varnishtest/tests/m00002.vtc	2011-08-29 10:45:24.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/tests/m00002.vtc	2011-11-06 22:29:25.879469200 +0100
+@@ -9,7 +9,7 @@ server s1 {
+ } -start
+ 
+ varnish v1 -vcl+backend {
+-	import std from "${topbuild}/lib/libvmod_std/.libs/libvmod_std.so" ;
++	import std from "${topbuild}/lib/libvmod_std/.libs/cygvmod_std.dll" ;
+ 
+ 	sub vcl_fetch {
+ 		set beresp.http.rnd1 = std.random(0,1);
+@@ -26,9 +26,9 @@ varnish v1 -cliok "debug.srandom 1"
+ client c1 {
+ 	txreq 
+ 	rxresp
+-	expect resp.http.rnd1 == 0.388
+-	expect resp.http.rnd2 == 7.478
+-	expect resp.http.rnd3 == 9.034
+-	expect resp.http.rnd4 == 99.502
++	expect resp.http.rnd1 != 0.000
++	expect resp.http.rnd2 != 0.000
++	expect resp.http.rnd3 != 8.000
++	expect resp.http.rnd4 != 99.000
+ 	expect resp.bodylen == 9
+ } -run
+--- origsrc/varnish-3.0.2/bin/varnishtest/tests/m00005.vtc	2011-08-29 10:45:24.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/tests/m00005.vtc	2011-11-06 22:29:25.895157300 +0100
+@@ -8,7 +8,7 @@ server s1 {
+ } -start
+ 
+ varnish v1 -vcl+backend {
+-	import std from "${topbuild}/lib/libvmod_std/.libs/libvmod_std.so" ;
++	import std from "${topbuild}/lib/libvmod_std/.libs/cygvmod_std.dll" ;
+ 
+ 	sub vcl_recv {
+ 		set req.ttl = 1000000s + std.duration(req.http.ttl, 1s);
+--- origsrc/varnish-3.0.2/bin/varnishtest/tests/m00006.vtc	2011-08-29 10:45:24.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/tests/m00006.vtc	2011-11-06 22:29:25.910845400 +0100
+@@ -9,7 +9,7 @@ server s1 {
+ } -start
+ 
+ varnish v1 -vcl+backend {
+-	import std from "${topbuild}/lib/libvmod_std/.libs/libvmod_std.so" ;
++	import std from "${topbuild}/lib/libvmod_std/.libs/cygvmod_std.dll" ;
+ 
+ 	sub vcl_recv {
+ 		std.collect(req.http.foo);
+@@ -28,7 +28,7 @@ client c1 {
+ } -run
+ 
+ varnish v1 -badvcl {
+-	import std from "${topbuild}/lib/libvmod_std/.libs/libvmod_std.so" ;
++	import std from "${topbuild}/lib/libvmod_std/.libs/cygvmod_std.dll" ;
+ 
+ 	backend b { .host = "127.0.0.1"; }
+ 
+--- origsrc/varnish-3.0.2/bin/varnishtest/tests/m00007.vtc	2011-08-29 10:45:24.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/tests/m00007.vtc	2011-11-06 22:29:25.942221600 +0100
+@@ -8,7 +8,7 @@ server s1 {
+ } -start
+ 
+ varnish v1 -vcl+backend {
+-	import std from "${topbuild}/lib/libvmod_std/.libs/libvmod_std.so" ;
++	import std from "${topbuild}/lib/libvmod_std/.libs/cygvmod_std.dll" ;
+ 
+ 	sub vcl_deliver {
+ 		set resp.http.biggerthanzero = (std.integer(req.http.foo,0) > 0);
+--- origsrc/varnish-3.0.2/bin/varnishtest/tests/r00878.vtc	2011-08-29 10:45:24.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/tests/r00878.vtc	2011-11-06 22:29:26.004974000 +0100
+@@ -6,7 +6,7 @@ server s1 {
+ } -start
+ 
+ varnish v1 -vcl+backend {
+-        import std from "${topbuild}/lib/libvmod_std/.libs/libvmod_std.so" ;
++        import std from "${topbuild}/lib/libvmod_std/.libs/cygvmod_std.dll" ;
+ 	sub vcl_deliver {
+ 		set resp.http.who = std.author(phk);
+ 	}
+@@ -18,7 +18,7 @@ client c1 {
+ 	rxresp
+ } -run
+ varnish v1 -vcl+backend {
+-        import std from "${topbuild}/lib/libvmod_std/.libs/libvmod_std.so" ;
++        import std from "${topbuild}/lib/libvmod_std/.libs/cygvmod_std.dll" ;
+ 	sub vcl_deliver {
+ 		set resp.http.who = std.author(des);
+ 	}
+@@ -30,7 +30,7 @@ client c1 {
+ } -run
+ 
+ varnish v1 -vcl+backend {
+-        import std from "${topbuild}/lib/libvmod_std/.libs/libvmod_std.so" ;
++        import std from "${topbuild}/lib/libvmod_std/.libs/cygvmod_std.dll" ;
+ 	sub vcl_deliver {
+ 		set resp.http.who = std.author(kristian);
+ 	}
+--- origsrc/varnish-3.0.2/bin/varnishtest/tests/r01002.vtc	2011-10-04 13:31:55.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/tests/r01002.vtc	2011-11-06 22:29:26.036350200 +0100
+@@ -1,7 +1,7 @@
+ varnishtest "Real relational comparisons"
+ 
+ varnish v1 -vcl {
+-	import std from "${topbuild}/lib/libvmod_std/.libs/libvmod_std.so" ;
++	import std from "${topbuild}/lib/libvmod_std/.libs/cygvmod_std.dll" ;
+ 
+ 	backend foo { .host = "${bad_ip}"; }
+ 	sub vcl_recv {
+--- origsrc/varnish-3.0.2/bin/varnishtest/vtc_http.c	2011-10-24 09:25:09.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/vtc_http.c	2011-11-07 00:40:54.774643900 +0100
+@@ -1166,7 +1166,7 @@ http_process(struct vtclog *vl, const ch
+ 	ALLOC_OBJ(hp, HTTP_MAGIC);
+ 	AN(hp);
+ 	hp->fd = sock;
+-	hp->timeout = 15000;
++	hp->timeout = 30000;
+ 	hp->nrxbuf = 2048*1024;
+ 	hp->vsb = VSB_new_auto();
+ 	hp->rxbuf = malloc(hp->nrxbuf);		/* XXX */
+--- origsrc/varnish-3.0.2/bin/varnishtest/vtc_main.c	2011-10-24 09:25:09.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/vtc_main.c	2011-11-07 00:43:16.427302400 +0100
+@@ -262,7 +262,7 @@ start_test(void)
+ 	ALLOC_OBJ(jp, JOB_MAGIC);
+ 	AN(jp);
+ 
+-	jp->bufsiz = 256*1024;		/* XXX */
++	jp->bufsiz = 128*1024;		/* XXX */
+ 
+ 	jp->buf = mmap(NULL, jp->bufsiz, PROT_READ|PROT_WRITE,
+ 	    MAP_ANON | MAP_SHARED, -1, 0);
+--- origsrc/varnish-3.0.2/bin/varnishtest/vtc_varnish.c	2011-10-24 09:25:09.000000000 +0200
++++ src/varnish-3.0.2/bin/varnishtest/vtc_varnish.c	2011-11-06 22:29:26.240295500 +0100
+@@ -103,7 +103,7 @@ varnish_ask_cli(const struct varnish *v,
+ 		i = write(v->cli_fd, "\n", 1);
+ 		assert(i == 1);
+ 	}
+-	i = VCLI_ReadResult(v->cli_fd, &retval, &r, 20.0);
++	i = VCLI_ReadResult(v->cli_fd, &retval, &r, 90.0);
+ 	if (i != 0) {
+ 		vtc_log(v->vl, 0, "CLI failed (%s) = %d %u %s",
+ 		    cmd, i, retval, r);
+@@ -138,8 +138,11 @@ h_addlog(void *priv, enum VSL_tag_e tag,
+ 
+ 	v->vsl_tag_count[tag]++;
+ 
++	if(tag!= SLT_Debug || len!=0)
++	{
+ 	vtc_log(v->vl, 4, "vsl| %5u %-12s %c %.*s", fd,
+ 	    VSL_tags[tag], type, len, ptr);
++	}
+ 	v->vsl_sleep = 100;
+ 	return (0);
+ }
+@@ -261,7 +264,7 @@ varnish_thread(void *priv)
+ 		memset(fds, 0, sizeof *fds);
+ 		fds->fd = v->fds[0];
+ 		fds->events = POLLIN;
+-		i = poll(fds, 1, 1000);
++		i = poll(fds, 1, 2000);
+ 		if (i == 0)
+ 			continue;
+ 		if (fds->revents & (POLLERR|POLLHUP))
+@@ -354,7 +357,7 @@ varnish_launch(struct varnish *v)
+ 	fd[0].events = POLLIN;
+ 	fd[1].fd = v->fds[0];
+ 	fd[1].events = POLLHUP;
+-	i = poll(fd, 2, 10000);
++	i = poll(fd, 2, 90000);
+ 	vtc_log(v->vl, 4, "CLIPOLL %d 0x%x 0x%x",
+ 	    i, fd[0].revents, fd[1].revents);
+ 	if (i == 0) {
+--- origsrc/varnish-3.0.2/configure.ac	2011-10-24 09:25:13.000000000 +0200
++++ src/varnish-3.0.2/configure.ac	2011-11-06 22:29:26.318736000 +0100
+@@ -45,6 +45,7 @@ CC="$PTHREAD_CC"
+ AC_PROG_INSTALL
+ AC_PROG_LIBTOOL
+ AC_PROG_MAKE_SET
++AC_PROG_LN_S
+ AC_CHECK_PROGS(XSLTPROC, [xsltproc], "no")
+ if test "x$XSLTPROC" = "xno"; then
+    AC_MSG_WARN([xsltproc not found – not building documentation])
+@@ -87,7 +88,11 @@ AC_SUBST(DL_LIBS)
+ 
+ save_LIBS="${LIBS}"
+ LIBS=""
+-AC_SEARCH_LIBS(initscr, [curses ncurses],
++curseslibs="curses ncurses pdcurses"
++AC_ARG_WITH(pdcurses,AS_HELP_STRING([--with-pdcurses],[force to use library pdcurses])],[curseslibs="pdcurses"])
++AC_ARG_WITH(ncurses,AS_HELP_STRING([--with-ncurses],[force tp use library ncurses])],[curseslibs="ncurses"])
++
++AC_SEARCH_LIBS(initscr,[${curseslibs}],
+ 	[have_curses=yes], [have_curses=no])
+ CURSES_LIBS="${LIBS}"
+ LIBS="${save_LIBS}"
+@@ -116,10 +121,12 @@ AC_SUBST(NET_LIBS)
+ AC_CHECK_LIBM
+ AC_SUBST(LIBM)
+ 
++libpcrename="libpcre"
++AC_ARG_WITH(pcre-win32,AS_HELP_STRING([--with-pcre-win32],[force to use library pcre win32 native])],[libpcrename="libpcre_win32"])
+ m4_pattern_forbid([^_?PKG_[A-Z_]+$],[pkg.m4 missing, please install pkg-config])
+ PKG_PROG_PKG_CONFIG
+ if test -n $PKG_CONFIG; then
+-   PKG_CHECK_MODULES([PCRE], [libpcre])
++   PKG_CHECK_MODULES([PCRE], [${libpcrename}])
+ else
+    AC_CHECK_PROG(PCRE_CONFIG, pcre-config, pcre-config)
+    AC_ARG_WITH(pcre-config,
+@@ -555,6 +562,19 @@ else
+ 	*-*-darwin*)
+ 		VCC_CC="exec cc $OCFLAGS -dynamiclib -Wl,-undefined,dynamic_lookup -o %o %s"
+ 		;;
++	*-*-cygwin*)
++		#calculate ${exec_prefix}/lib, because it is asigned later, and we need now
++		prefix_aux=`eval echo ${prefix}`
++		test "x$prefix_aux" = xNONE && prefix_aux=`eval echo ${ac_default_prefix}`
++		# Let make expand exec_prefix.
++		exec_prefix_aux=`eval echo ${exec_prefix}`
++		test "x$exec_prefix_aux" = xNONE && exec_prefix_aux=`eval echo ${prefix_aux}`
++		# Remove "/" if we are in Root
++		test "x$exec_prefix_aux" = "x/" && exec_prefix_aux=""
++		#calculate compilation path
++		comp_prefix=`pwd`
++		VCC_CC="$PTHREAD_CC $OCFLAGS $PTHREAD_CFLAGS -shared %s -L${comp_prefix}/lib/libvarnish/.libs -L${comp_prefix}/bin/varnishd -L${exec_prefix_aux}/lib -L${exec_prefix_aux}/sbin -L${exec_prefix_aux}/bin -lvarnish -lvarnishd -o %o"
++		;;
+ 	*)
+ 		VCC_CC="exec $PTHREAD_CC $OCFLAGS $PTHREAD_CFLAGS -fpic -shared -Wl,-x -o %o %s"
+ 		;;
+@@ -563,6 +583,26 @@ fi
+ 
+ AC_DEFINE_UNQUOTED([VCC_CC],"$VCC_CC",[C compiler command line for VCL code])
+ 
++# Add library dependencies with libvarnish (linker needs it in CYGWIN during compilation time)
++# Generate fake library libvarnishd.dll.a in order to successful linking DLL when resolving varnishd.exe simbols
++case $target in
++*-*-cygwin*)
++		CYGWIN_varnishd_LDFLAGS=' -Wl,-out-implib,libvarnishd.dll.a'
++		CYGWIN_libvarnishd_OBJECTS='libvarnishd.dll.a'
++		CYGWIN_libvmod_std_la_LIBADD='$(top_builddir)/lib/libvarnish/libvarnish.la -lvarnishd -L$(top_builddir)/bin/varnishd'
++		AC_SUBST(CYGWIN_varnishd_LDFLAGS)
++		AC_SUBST(CYGWIN_libvarnishd_OBJECTS)
++		AC_SUBST(CYGWIN_libvmod_std_la_LIBADD)
++		cygwin=true
++		;;
++*)
++		cygwin=false
++		;;
++esac
++
++AM_CONDITIONAL([CYGWIN_COMPILATION], test x$cygwin = xtrue)
++
++
+ # Generate output
+ AC_CONFIG_FILES([
+     Makefile
+--- origsrc/varnish-3.0.2/lib/Makefile.am	2011-08-29 10:45:24.000000000 +0200
++++ src/varnish-3.0.2/lib/Makefile.am	2011-11-06 22:29:26.334424100 +0100
+@@ -5,8 +5,7 @@ SUBDIRS = \
+ 	libvarnish \
+ 	libvarnishapi \
+ 	libvcl \
+-	libvgz \
+-	libvmod_std \
++	libvgz
+ 	@JEMALLOC_SUBDIR@
+ 
+ DIST_SUBDIRS = 	\
+--- origsrc/varnish-3.0.2/lib/libvarnish/vin.c	2011-10-24 09:25:09.000000000 +0200
++++ src/varnish-3.0.2/lib/libvarnish/vin.c	2011-11-06 22:29:26.365800300 +0100
+@@ -35,6 +35,9 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <unistd.h>
++#if defined(__CYGWIN__)
++#include <ctype.h>
++#endif
+ 
+ #include "libvarnish.h"
+ #include "vsm.h"
+@@ -64,6 +67,13 @@ VIN_N_Arg(const char *n_arg, char **name
+ 
+ 	if (*nm == '/')
+ 		strcpy(dn, nm);
++#if defined(__CYGWIN__)
++/* In Windows we also tolerate other absolute paths: \\hostname\path, c:/path and c:\path */
++	else if (strlen(nm)>2 && nm[0] == '\\' && nm[1] == '\\')
++		strcpy(dn, nm);
++	else if (strlen(nm)>3 && isalpha(nm[0]) && nm[1] == ':' && (nm[2] == '/'||nm[2] == '\\'))
++		strcpy(dn, nm);
++#endif
+ 	else if (strlen(VARNISH_STATE_DIR) + 1 + strlen(nm) >= sizeof dn){
+ 		/* preliminary length check to avoid overflowing dm */
+ 		errno = ENAMETOOLONG;
+--- origsrc/varnish-3.0.2/lib/libvcl/Makefile.am	2011-10-24 09:25:09.000000000 +0200
++++ src/varnish-3.0.2/lib/libvcl/Makefile.am	2011-11-06 22:29:26.381488400 +0100
+@@ -33,6 +33,8 @@ libvcl_la_SOURCES = \
+ 	vcc_vmod.c \
+ 	vcc_xref.c
+ 
++libvcl_la_LIBADD = $(top_builddir)/lib/libvarnish/libvarnish.la
++
+ EXTRA_DIST = \
+ 	generate.py
+ 
+--- origsrc/varnish-3.0.2/lib/libvcl/vcc_vmod.c	2011-10-24 09:25:09.000000000 +0200
++++ src/varnish-3.0.2/lib/libvcl/vcc_vmod.c	2011-11-06 22:29:26.397176500 +0100
+@@ -97,7 +97,11 @@ vcc_ParseImport(struct vcc *tl)
+ 		bprintf(fn, "%s", tl->t->dec);
+ 		vcc_NextToken(tl);
+ 	} else {
++#if defined(__CYGWIN__)
++		bprintf(fn, "%s/cygvmod_%.*s.dll", tl->vmod_dir, PF(mod));
++#else
+ 		bprintf(fn, "%s/libvmod_%.*s.so", tl->vmod_dir, PF(mod));
++#endif
+ 	}
+ 
+ 	Fh(tl, 0, "static void *VGC_vmod_%.*s;\n", PF(mod));
+--- origsrc/varnish-3.0.2/lib/libvmod_std/Makefile.am	2011-08-29 10:45:24.000000000 +0200
++++ src/varnish-3.0.2/lib/libvmod_std/Makefile.am	2011-11-06 22:29:26.412864600 +0100
+@@ -16,6 +16,8 @@ libvmod_std_la_SOURCES = \
+ 	vmod_std_fileread.c \
+ 	vmod_std_conversions.c
+ 
++libvmod_std_la_LIBADD = ${CYGWIN_libvmod_std_la_LIBADD}
++
+ vcc_if.c vcc_if.h: $(top_srcdir)/lib/libvmod_std/vmod.py $(top_srcdir)/lib/libvmod_std/vmod.vcc
+ 	@PYTHON@ $(top_srcdir)/lib/libvmod_std/vmod.py $(top_srcdir)/lib/libvmod_std/vmod.vcc
+ 
+@@ -23,6 +25,11 @@ EXTRA_DIST = vmod.py vmod.vcc
+ 
+ CLEANFILES = $(builddir)/vcc_if.c $(builddir)/vcc_if.h
+ 
++if CYGWIN_COMPILATION
++install-exec-hook:
++	$(LN_S) -f cygvmod_std.dll .libs/libvmod_std.so
++endif
++
+ vmod_std.3: $(top_srcdir)/doc/sphinx/reference/vmod_std.rst
+ if HAVE_RST2MAN
+ 	${RST2MAN} $? $@

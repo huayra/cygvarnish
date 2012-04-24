@@ -1,0 +1,65 @@
+varnishtest "VCL compiler coverage test: vcc_token.c"
+
+varnish v1 -badvcl " C{ "
+
+varnish v1 -vcl {
+	backend b { .host = "127.0.0.1"; }
+	# comment
+	sub vcl_recv { set req.url = "x"; }
+}
+
+varnish v1 -badvcl {
+	backend b { .host = "127.0.0.1"; }
+	/*
+}
+
+varnish v1 -badvcl {
+	backend b { .host = "127.0.0.1"; }
+	{" }
+}
+
+varnish v1 -badvcl {
+	backend b { .host = "127.0.0.1"; }
+	"
+}
+
+varnish v1 -vcl {
+	backend b { .host = "127.0.0.1"; }
+	sub vcl_recv { C{ int i; (void)i; }C }
+}
+
+varnish v1 -badvcl {
+	backend b { .host = "127.0.0.1"; }
+	?
+}
+
+varnish v1 -badvcl {
+	backend b { .host = "127.0.0.1"; }
+	sub vcl_recv {
+		if ("foo" + "bar" == 777) {
+			set req.http.host = 1;
+		}
+	}
+}
+
+varnish v1 -badvcl {
+	backend b { .host = "127.0.0.1"; }
+	sub vcl_recv {
+		if ("foo" + "bar" ==
+		    777) {
+			set req.http.host = 1;
+		}
+	}
+}
+
+varnish v1 -badvcl {
+	backend b { .host = "127.0.0.1"; }
+	sub vcl_recv {
+		if ("foo" + "bar" ==
+
+
+		    777) {
+			set req.http.host = 1;
+		}
+	}
+}

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 2.0.4</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 2.0.4</h1>
+    <h2>Changes between 2.0.3 and 2.0.4</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>Make Varnish more portable by pulling in fixes for
+      Solaris and NetBSD.</p>
+      </li>
+      <li>
+        <p>Correct description of -a in the manual page.</p>
+      </li>
+      <li>
+        <p>Ensure we are compiling in C99 mode.</p>
+      </li>
+      <li>
+        <p>If error was called with a null reason, we would crash on
+      Solaris.  Make sure this no longer happens.</p>
+      </li>
+      <li>
+        <p>Varnish used to crash if you asked it to use a
+      non-existent waiter.  This has now been fixed.</p>
+      </li>
+      <li>
+        <p>Add documentation to the default VCL explaining that
+      using <span class="code">Connection: close</span> in <span class="code">vcl_close</span>
+      is generally a good idea.</p>
+      </li>
+      <li>
+        <p>Add minimal facility for dealing with TELNET option
+	negotiation by returning WONT to DO and DONT requests.</p>
+      </li>
+      <li>
+        <p>If the backend is unhealthy, use a graced object if one is
+      available.</p>
+      </li>
+      <li>
+        <p>Make <span class="code">server.hostname</span>
+      and <span class="code">server.identity</span> available to VCL.  The latter
+      can be set with the <span class="code">-i</span> parameter
+      to <span class="code">varnishd</span>.</p>
+      </li>
+      <li>
+        <p>Make <span class="code">restart</span> available
+      from <span class="code">vcl_error</span>.</p>
+      </li>
+      <li>
+        <p>Previously, only the TTL of an object was considered in
+      whether it would be marked as cacheable.  This has been changed
+      to take the grace into consideration as well.</p>
+      </li>
+      <li>
+        <p>Previously, if an included ESI fragment had a zero size,
+      we would send out a zero-sized chunk which signifies
+      end-of-transmission.  We now ignore zero-sized chunks.</p>
+      </li>
+      <li>
+        <p>We accidentially slept for far too long when we reached
+      the maximum number of open file descriptors.  This has been
+      corrected and <span class="code">accept_fd_holdoff</span> now works
+      correctly.</p>
+      </li>
+      <li>
+        <p>Previously, when ESI processing, we did not look at the
+      full length, but stopped at the first NULL byte.  We no longer
+      do that, enabling ESI processing of binary data.</p>
+      </li>
+    </ul>
+    <h3>varnishtest</h3>
+    <ul>
+      <li>
+        <p>Make sure system "..." returns successfully to ensure
+      test failures do not go unnoticed.</p>
+      </li>
+      <li>
+        <p>Make it possible to send NULL bytes through the testing
+      framework.</p>
+      </li>
+    </ul>
+  </body>
+</html>

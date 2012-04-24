@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 1.1</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 1.1</h1>
+    <h2>Changes between 1.0.4 and 1.1</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>Readability of the C source code generated from VCL code
+      has been improved.</p>
+      </li>
+      <li>
+        <p>Equality (<span class="code">==</span>) and inequality
+      (<span class="code">!=</span>) operators have been implemented for IP
+      addresses (which previously could only be compared using
+      ACLs).</p>
+      </li>
+      <li>
+        <p>The address of the listening socket on which the client
+      connection was received is now available to VCL as the
+      <span class="code">server.ip</span> variable.</p>
+      </li>
+      <li>
+        <p>Each object's hash key is now computed based on a string
+      which is available to VCL as <span class="code">req.hash</span>.  A VCL hook
+      named <span class="code">vcl_hash</span> has been added to allow VCL scripts
+      to control hash generation (for instance, whether or not to
+      include the value of the <span class="code">Host:</span> header in the
+      hash).</p>
+      </li>
+      <li>
+        <p>The setup code for listening sockets has been modified to
+      detect and handle situations where a host name resolves to
+      multiple IP addresses.  It will now attempt to bind to each IP
+      address separately, and report a failure only if none of them
+      worked.</p>
+      </li>
+      <li>
+        <p>Network or protocol errors that occur while retrieving an
+      object from a backend server now result in a synthetic error
+      page being inserted into the cache with a 30-second TTL.  This
+      should help avoid driving an overburdened backend server into
+      the ground by repeatedly requesting the same object.</p>
+      </li>
+      <li>
+        <p>The child process will now drop root privileges
+      immediately upon startup.  The user and group to use are
+      specified with the <span class="code">user</span> and <span class="code">group</span>
+      run-time parameters, which default to <span class="code">nobody</span> and
+      <span class="code">nogroup</span>, respectively.  Other changes have been
+      made in an effort to increase the isolation between parent and
+      child, and reduce the impact of a compromise of the child
+      process.</p>
+      </li>
+      <li>
+        <p>Objects which are received from the backend with a
+      <span class="code">Vary:</span> header are now stored separately according to
+      the values of the headers specified in <span class="code">Vary:</span>.  This
+      allows Varnish to correctly cache e.g. compressed and
+      uncompressed versions of the same object.</p>
+      </li>
+      <li>
+        <p>Each Varnish instance now has a name, which by default is
+      the host name of the machine it runs on, but can be any string
+      that would be valid as a relative or absolute directory name.
+      It is used to construct the name of a directory in which the
+      server state as well as all temporary files are stored.  This
+      makes it possible to run multiple Varnish instances on the same
+      machine without conflict.</p>
+      </li>
+      <li>
+        <p>When invoked with the <span class="code">-C</span> option,
+      <span class="code">varnishd</span> will now not just translate the VCL code
+      to C, but also compile the C code and attempt to load the
+      resulting shared object.</p>
+      </li>
+      <li>
+        <p>Attempts by VCL code to reference a variable outside its
+      scope or to assign a value to a read-only variable will now
+      result in compile-time rather than run-time errors.</p>
+      </li>
+      <li>
+        <p>The new command-line option <span class="code">-F</span> will make
+      <span class="code">varnishd</span> run in the foreground, without enabling
+      debugging.</p>
+      </li>
+      <li>
+        <p>New VCL variables have been introduced to allow inspection
+      and manipulation of the request sent to the backend
+      (<span class="code">bereq.request</span>, <span class="code">bereq.url</span>,
+      <span class="code">bereq.proto</span> and <span class="code">bereq.http</span>) and the
+      response to the client (<span class="code">resp.proto</span>,
+      <span class="code">resp.status</span>, <span class="code">resp.response</span> and
+      <span class="code">resp.http</span>).</p>
+      </li>
+      <li>
+        <p>Statistics from the storage code (including the amount of
+      data and free space in the cache) are now available to
+      <span class="code">varnishstat</span> and other statistics-gathering
+      tools.</p>
+      </li>
+      <li>
+        <p>Objects are now kept on an LRU list which is kept loosely
+      up-to-date (to within a few seconds).  When cache runs out, the
+      objects at the tail end of the LRU list are discarded one by one
+      until there is enough space for the freshly requested object(s).
+      A VCL hook, <span class="code">vcl_discard</span>, is allowed to inspect each
+      object and determine its fate by returning either
+      <span class="code">keep</span> or <span class="code">discard</span>.</p>
+      </li>
+      <li>
+        <p>A new VCL hook, <span class="code">vcl_deliver</span>, provides a
+      chance to adjust the response before it is sent to the
+      client.</p>
+      </li>
+      <li>
+        <p>A new management command, <span class="code">vcl.show</span>, displays
+      the VCL source code of any loaded configuration.</p>
+      </li>
+      <li>
+        <p>A new VCL variable, <span class="code">now</span>, provides VCL scripts
+      with the current time in seconds since the epoch.</p>
+      </li>
+      <li>
+        <p>A new VCL variable, <span class="code">obj.lastuse</span>, reflects the
+      time in seconds since the object in question was last
+      used.</p>
+      </li>
+      <li>
+        <p>VCL scripts can now add an HTTP header (or modify the
+      value of an existing one) by assigning a value to the
+      corresponding variable, and strip an HTTP header by using the
+      <span class="code">remove</span> keyword.</p>
+      </li>
+      <li>
+        <p>VCL scripts can now modify the HTTP status code of cached
+      objects (<span class="code">obj.status</span>) and responses
+      (<span class="code">resp.status</span>)</p>
+      </li>
+      <li>
+        <p>Numeric and other non-textual variables in VCL can now be
+      assigned to textual variables; they will be converted as
+      needed.</p>
+      </li>
+      <li>
+        <p>VCL scripts can now apply regular expression substitutions
+      to textual variables using the <span class="code">regsub</span>
+      function.</p>
+      </li>
+      <li>
+        <p>A new management command, <span class="code">status</span>, returns the
+      state of the child.</p>
+      </li>
+      <li>
+        <p>Varnish will now build and run on Mac OS X.</p>
+      </li>
+    </ul>
+    <h3>varnishadm</h3>
+    <ul>
+      <li>
+        <p>This is a new utility which sends a single command to a
+      Varnish server's management port and prints the result to
+      <span class="code">stdout</span>, greatly simplifying the use of the
+      management port from scripts.</p>
+      </li>
+    </ul>
+    <h3>varnishhist</h3>
+    <ul>
+      <li>
+        <p>The user interface has been greatly improved; the
+      histogram will be automatically rescaled and redrawn when the
+      window size changes, and it is updated regularly rather than at
+      a rate dependent on the amount of log data gathered.  In
+      addition, the name of the Varnish instance being watched is
+      displayed in the upper right corner.</p>
+      </li>
+    </ul>
+    <h3>varnishncsa</h3>
+    <ul>
+      <li>
+        <p>In addition to client traffic, <span class="code">varnishncsa</span>
+      can now also process log data from backend traffic.</p>
+      </li>
+      <li>
+        <p>A bug that would cause <span class="code">varnishncsa</span> to
+      segfault when it encountered an empty HTTP header in the log
+      file has been fixed.</p>
+      </li>
+    </ul>
+    <h3>varnishreplay</h3>
+    <ul>
+      <li>
+        <p>This new utility will attempt to recreate the HTTP traffic
+      which resulted in the raw Varnish log data which it is
+      fed.</p>
+      </li>
+    </ul>
+    <h3>varnishstat</h3>
+    <ul>
+      <li>
+        <p>Don't print lifetime averages when it doesn't make any
+      sense—for instance, there is no point in dividing the
+      amount in bytes of free cache space by the lifetime in seconds
+      of the <span class="code">varnishd</span> process.</p>
+      </li>
+      <li>
+        <p>The user interface has been greatly improved;
+      <span class="code">varnishstat</span> will no longer print more than fits in
+      the terminal, and will respond correctly to window resize
+      events.  The output produced in one-shot mode has been modified
+      to include symbolic names for each entry.  In addition, the name
+      of the Varnish instance being watched is displayed in the upper
+      right corner in curses mode.</p>
+      </li>
+    </ul>
+    <h3>varnishtop</h3>
+    <ul>
+      <li>
+        <p>The user interface has been greatly improved;
+      <span class="code">varnishtop</span> will now respond correctly to window
+      resize events, and one-shot mode (<span class="code">-1</span>) actually
+      works.  In addition, the name of the Varnish instance being
+      watched is displayed in the upper right corner in curses
+      mode.</p>
+      </li>
+    </ul>
+  </body>
+</html>

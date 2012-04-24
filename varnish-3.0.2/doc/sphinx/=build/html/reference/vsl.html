@@ -1,0 +1,172 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Shared Memory Logging &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="The Varnish Reference Manual" href="index.html" />
+    <link rel="next" title="Frequently asked questions" href="../faq/index.html" />
+    <link rel="prev" title="vmod_std" href="vmod_std.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../faq/index.html" title="Frequently asked questions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vmod_std.html" title="vmod_std"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="shared-memory-logging">
+<span id="reference-vsl"></span><h1>Shared Memory Logging<a class="headerlink" href="#shared-memory-logging" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ttl-records">
+<h2>TTL records<a class="headerlink" href="#ttl-records" title="Permalink to this headline">¶</a></h2>
+<p>A TTL record is emitted whenever the ttl, grace or keep values for an
+object is set.</p>
+<p>The format is:</p>
+<div class="highlight-python"><pre>%u %s %d %d %d %d %d [ %d %u %u ]
+|  |  |  |  |  |  |    |  |  |
+|  |  |  |  |  |  |    |  |  +- Max-Age from Cache-Control header
+|  |  |  |  |  |  |    |  +---- Expires header
+|  |  |  |  |  |  |    +------- Date header
+|  |  |  |  |  |  +------------ Age (incl Age: header value)
+|  |  |  |  |  +--------------- Reference time for TTL
+|  |  |  |  +------------------ Keep
+|  |  |  +--------------------- Grace
+|  |  +------------------------ TTL
+|  +--------------------------- "RFC" or "VCL"
++------------------------------ object XID</pre>
+</div>
+<p>The last three fields are only present in &quot;RFC&quot; headers.</p>
+<p>Examples:</p>
+<div class="highlight-python"><pre>1001 RFC 19 -1 -1 1312966109 4 0 0 23
+1001 VCL 10 -1 -1 1312966109 4
+1001 VCL 7 -1 -1 1312966111 6
+1001 VCL 7 120 -1 1312966111 6
+1001 VCL 7 120 3600 1312966111 6
+1001 VCL 12 120 3600 1312966113 8</pre>
+</div>
+</div>
+<div class="section" id="gzip-records">
+<h2>Gzip records<a class="headerlink" href="#gzip-records" title="Permalink to this headline">¶</a></h2>
+<p>A Gzip record is emitted for each instance of gzip or gunzip work
+performed.
+Worst case, an ESI transaction stored in gzip'ed objects but delivered
+gunziped, will run into many of these.</p>
+<p>The format is:</p>
+<div class="highlight-python"><pre>%c %c %c %d %d %d %d %d
+|  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  +- Bit length of compressed data
+|  |  |  |  |  |  +---- Bit location of 'last' bit
+|  |  |  |  |  +------- Bit location of first deflate block
+|  |  |  |  +---------- Bytes output
+|  |  |  +------------- Bytes input
+|  |  +---------------- 'E' = ESI, '-' = Plain object
+|  +------------------- 'F' = Fetch, 'D' = Deliver
++---------------------- 'G' = Gzip, 'U' = Gunzip, 'u' = Gunzip-test</pre>
+</div>
+<p>Examples:</p>
+<div class="highlight-python"><pre>U F E 182 159 80 80 1392
+G F E 159 173 80 1304 1314</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Shared Memory Logging</a><ul>
+<li><a class="reference internal" href="#ttl-records">TTL records</a></li>
+<li><a class="reference internal" href="#gzip-records">Gzip records</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="vmod_std.html"
+                        title="previous chapter">vmod_std</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../faq/index.html"
+                        title="next chapter">Frequently asked questions</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/reference/vsl.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../faq/index.html" title="Frequently asked questions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vmod_std.html" title="vmod_std"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

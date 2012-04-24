@@ -1,0 +1,194 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Edge Side Includes &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Using Varnish" href="index.html" />
+    <link rel="next" title="Running inside a virtual machine (VM)" href="virtualised.html" />
+    <link rel="prev" title="Purging and banning" href="purging.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="virtualised.html" title="Running inside a virtual machine (VM)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="purging.html" title="Purging and banning"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="edge-side-includes">
+<span id="tutorial-esi"></span><h1>Edge Side Includes<a class="headerlink" href="#edge-side-includes" title="Permalink to this headline">¶</a></h1>
+<p><em>Edge Side Includes</em> is a language to include <em>fragments</em> of web pages
+in other web pages. Think of it as HTML include statement that works
+over HTTP.</p>
+<p>On most web sites a lot of content is shared between
+pages. Regenerating this content for every page view is wasteful and
+ESI tries to address that letting you decide the cache policy for
+each fragment individually.</p>
+<p>In Varnish we've only implemented a small subset of ESI. As of 2.1 we
+have three ESI statements:</p>
+<blockquote>
+<div><ul class="simple">
+<li>esi:include</li>
+<li>esi:remove</li>
+<li>&lt;!--esi ...--&gt;</li>
+</ul>
+</div></blockquote>
+<p>Content substitution based on variables and cookies is not implemented
+but is on the roadmap.</p>
+<div class="section" id="example-esi-include">
+<h2>Example: esi include<a class="headerlink" href="#example-esi-include" title="Permalink to this headline">¶</a></h2>
+<p>Lets see an example how this could be used. This simple cgi script
+outputs the date::</p>
+<div class="highlight-python"><pre>#!/bin/sh
+
+echo 'Content-type: text/html'
+echo ''
+date "+%Y-%m-%d %H:%M"</pre>
+</div>
+<p>Now, lets have an HTML file that has an ESI include statement::</p>
+<div class="highlight-python"><pre>&lt;HTML&gt;
+&lt;BODY&gt;
+The time is: &lt;esi:include src="/cgi-bin/date.cgi"/&gt;
+at this very moment.
+&lt;/BODY&gt;
+&lt;/HTML&gt;</pre>
+</div>
+<p>For ESI to work you need to activate ESI processing in VCL, like this::</p>
+<div class="highlight-python"><pre>sub vcl_fetch {
+    if (req.url == "/test.html") {
+       set beresp.do_esi = true; /* Do ESI processing               */
+       set beresp.ttl = 24 h;    /* Sets the TTL on the HTML above  */
+    } elseif (req.url == "/cgi-bin/date.cgi") {
+       set beresp.ttl = 1m;      /* Sets a one minute TTL on        */
+                                 /*  the included object            */
+    }
+}</pre>
+</div>
+</div>
+<div class="section" id="example-esi-remove">
+<h2>Example: esi remove<a class="headerlink" href="#example-esi-remove" title="Permalink to this headline">¶</a></h2>
+<p>The <em>remove</em> keyword allows you to remove output. You can use this to make
+a fall back of sorts, when ESI is not available, like this::</p>
+<div class="highlight-python"><pre>&lt;esi:include src="http://www.example.com/ad.html"/&gt;
+&lt;esi:remove&gt;
+  &lt;a href="http://www.example.com"&gt;www.example.com&lt;/a&gt;
+&lt;/esi:remove&gt;</pre>
+</div>
+</div>
+<div class="section" id="example-esi">
+<h2>Example: &lt;!--esi ... --&gt;<a class="headerlink" href="#example-esi" title="Permalink to this headline">¶</a></h2>
+<p>This is a special construct to allow HTML marked up with ESI to render
+without processing. ESI Processors will remove the start (&quot;&lt;!--esi&quot;)
+and end (&quot;--&gt;&quot;) when the page is processed, while still processing the
+contents. If the page is not processed, it will remain, becoming an
+HTML/XML comment tag. For example:</p>
+<div class="highlight-python"><pre>&lt;!--esi
+&lt;p&gt;Warning: ESI Disabled!&lt;/p&gt;
+&lt;/p&gt;  --&gt;</pre>
+</div>
+<p>This assures that the ESI markup will not interfere with the rendering
+of the final HTML if not processed.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Edge Side Includes</a><ul>
+<li><a class="reference internal" href="#example-esi-include">Example: esi include</a></li>
+<li><a class="reference internal" href="#example-esi-remove">Example: esi remove</a></li>
+<li><a class="reference internal" href="#example-esi">Example: &lt;!--esi ... --&gt;</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="purging.html"
+                        title="previous chapter">Purging and banning</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="virtualised.html"
+                        title="next chapter">Running inside a virtual machine (VM)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/esi.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="virtualised.html" title="Running inside a virtual machine (VM)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="purging.html" title="Purging and banning"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

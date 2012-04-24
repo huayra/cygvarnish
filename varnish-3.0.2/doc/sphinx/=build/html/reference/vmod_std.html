@@ -1,0 +1,340 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>vmod_std &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="The Varnish Reference Manual" href="index.html" />
+    <link rel="next" title="Shared Memory Logging" href="vsl.html" />
+    <link rel="prev" title="VMOD - Varnish Modules" href="vmod.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vsl.html" title="Shared Memory Logging"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vmod.html" title="VMOD - Varnish Modules"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="vmod-std">
+<h1>vmod_std<a class="headerlink" href="#vmod-std" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="varnish-standard-module">
+<h2>Varnish Standard Module<a class="headerlink" href="#varnish-standard-module" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Per Buer</td>
+</tr>
+<tr class="field"><th class="field-name">Date:</th><td class="field-body">2011-05-19</td>
+</tr>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body">1.0</td>
+</tr>
+<tr class="field"><th class="field-name">Manual section:</th><td class="field-body">3</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="synopsis">
+<h3>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h3>
+<p>import std</p>
+</div>
+<div class="section" id="description">
+<h3>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<p>The Varnish standard module contains useful, generic function that
+don't quite fit in the VCL core, but are still considered very useful
+to a broad audience.</p>
+</div>
+<div class="section" id="functions">
+<h3>FUNCTIONS<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="toupper">
+<h4>toupper<a class="headerlink" href="#toupper" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Prototype</dt>
+<dd>toupper(STRING S)</dd>
+<dt>Return value</dt>
+<dd>String</dd>
+<dt>Description</dt>
+<dd>Converts the STRING S to upper case.</dd>
+<dt>Example</dt>
+<dd>set beresp.http.x-scream = std.toupper(&quot;yes!&quot;);</dd>
+</dl>
+</div>
+<div class="section" id="tolower">
+<h4>tolower<a class="headerlink" href="#tolower" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Prototype</dt>
+<dd>tolower(STRING S)</dd>
+<dt>Return value</dt>
+<dd>String</dd>
+<dt>Description</dt>
+<dd>Converts the STRING to lower case.</dd>
+<dt>Example</dt>
+<dd>set beresp.http.x-nice = std.tolower(&quot;VerY&quot;);</dd>
+</dl>
+</div>
+<div class="section" id="set-up-tos">
+<h4>set_up_tos<a class="headerlink" href="#set-up-tos" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Prototype</dt>
+<dd>set_ip_tos(INT I)</dd>
+<dt>Return value</dt>
+<dd>Void</dd>
+<dt>Description</dt>
+<dd>Sets the Type-of-Service flag for the current session. Please
+note that the TOS flag is not removed by the end of the
+request so probably want to set it on every request should you
+utilize it.</dd>
+<dt>Example</dt>
+<dd><div class="first last line-block">
+<div class="line">if (req.url ~ ^/slow/) {</div>
+<div class="line-block">
+<div class="line">std.set_up_tos(0x0);</div>
+</div>
+<div class="line">}</div>
+</div>
+</dd>
+</dl>
+</div>
+<div class="section" id="random">
+<h4>random<a class="headerlink" href="#random" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Prototype</dt>
+<dd>random(REAL a, REAL b)</dd>
+<dt>Return value</dt>
+<dd>Real</dd>
+<dt>Description</dt>
+<dd>Returns a random REAL number between <em>a</em> and <em>b</em>.</dd>
+<dt>Example</dt>
+<dd>set beresp.http.x-random-number = std.random(1, 100);</dd>
+</dl>
+</div>
+<div class="section" id="log">
+<h4>log<a class="headerlink" href="#log" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Prototype</dt>
+<dd>log(STRING string)</dd>
+<dt>Return value</dt>
+<dd>Void</dd>
+<dt>Description</dt>
+<dd>Logs string to the shared memory log.</dd>
+<dt>Example</dt>
+<dd>std.log(&quot;Something fishy is going on with the vhost &quot; + req.host);</dd>
+</dl>
+</div>
+<div class="section" id="syslog">
+<h4>syslog<a class="headerlink" href="#syslog" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Prototype</dt>
+<dd>syslog(INT priority, STRING string)</dd>
+<dt>Return value</dt>
+<dd>Void</dd>
+<dt>Description</dt>
+<dd>Logs <em>string</em> to syslog marked with <em>priority</em>.</dd>
+<dt>Example</dt>
+<dd>std.syslog( LOG_USER|LOG_ALERT, &quot;There is serious troble&quot;);</dd>
+</dl>
+</div>
+<div class="section" id="fileread">
+<h4>fileread<a class="headerlink" href="#fileread" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Prototype</dt>
+<dd>fileread(STRING filename)</dd>
+<dt>Return value</dt>
+<dd>String</dd>
+<dt>Description</dt>
+<dd>Reads a file and returns a string with the content. Please
+note that it is not recommended to send variables to this
+function the caching in the function doesn't take this into
+account. Also, files are not re-read.</dd>
+<dt>Example</dt>
+<dd>set beresp.http.x-served-by = std.fileread(&quot;/etc/hostname&quot;);</dd>
+</dl>
+</div>
+<div class="section" id="duration">
+<h4>duration<a class="headerlink" href="#duration" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Prototype</dt>
+<dd>duration(STRING s, DURATION fallback)</dd>
+<dt>Return value</dt>
+<dd>Duration</dd>
+<dt>Description</dt>
+<dd>Converts the string s to seconds. s can be quantified with the
+usual s (seconds), m (minutes), h (hours), d (days) and w
+(weeks) units. If it fails to parse the string <em>fallback</em>
+will be used</dd>
+<dt>Example</dt>
+<dd>set beresp.ttl = std.duration(&quot;1w&quot;, 3600);</dd>
+</dl>
+</div>
+<div class="section" id="integer">
+<h4>integer<a class="headerlink" href="#integer" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Prototype</dt>
+<dd>integer(STRING s, INT fallback)</dd>
+<dt>Return value</dt>
+<dd>Int</dd>
+<dt>Description</dt>
+<dd>Converts the string s to an integer.  If it fails to parse the
+string <em>fallback</em> will be used</dd>
+<dt>Example</dt>
+<dd>if (std.integer(beresp.http.x-foo, 0) &gt; 5) { … }</dd>
+</dl>
+</div>
+<div class="section" id="collect">
+<h4>collect<a class="headerlink" href="#collect" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Prototype</dt>
+<dd>collect(HEADER header)</dd>
+<dt>Return value</dt>
+<dd>Void</dd>
+<dt>Description</dt>
+<dd>Collapses the header, joining the headers into one.</dd>
+<dt>Example</dt>
+<dd>std.collect(req.http.cookie);
+This will collapse several Cookie: headers into one, long
+cookie header.</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="see-also">
+<h3>SEE ALSO<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>vcl(7)</li>
+<li>varnishd(1)</li>
+</ul>
+</div>
+<div class="section" id="history">
+<h3>HISTORY<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h3>
+<p>The Varnish standard module was released along with Varnish Cache 3.0.
+This manual page was written by Per Buer with help from Martin Blix
+Grydeland.</p>
+</div>
+<div class="section" id="copyright">
+<h3>COPYRIGHT<a class="headerlink" href="#copyright" title="Permalink to this headline">¶</a></h3>
+<p>This document is licensed under the same licence as Varnish
+itself. See LICENCE for details.</p>
+<ul class="simple">
+<li>Copyright (c) 2011 Varnish Software</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">vmod_std</a><ul>
+<li><a class="reference internal" href="#varnish-standard-module">Varnish Standard Module</a><ul>
+<li><a class="reference internal" href="#synopsis">SYNOPSIS</a></li>
+<li><a class="reference internal" href="#description">DESCRIPTION</a></li>
+<li><a class="reference internal" href="#functions">FUNCTIONS</a><ul>
+<li><a class="reference internal" href="#toupper">toupper</a></li>
+<li><a class="reference internal" href="#tolower">tolower</a></li>
+<li><a class="reference internal" href="#set-up-tos">set_up_tos</a></li>
+<li><a class="reference internal" href="#random">random</a></li>
+<li><a class="reference internal" href="#log">log</a></li>
+<li><a class="reference internal" href="#syslog">syslog</a></li>
+<li><a class="reference internal" href="#fileread">fileread</a></li>
+<li><a class="reference internal" href="#duration">duration</a></li>
+<li><a class="reference internal" href="#integer">integer</a></li>
+<li><a class="reference internal" href="#collect">collect</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#see-also">SEE ALSO</a></li>
+<li><a class="reference internal" href="#history">HISTORY</a></li>
+<li><a class="reference internal" href="#copyright">COPYRIGHT</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="vmod.html"
+                        title="previous chapter">VMOD - Varnish Modules</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="vsl.html"
+                        title="next chapter">Shared Memory Logging</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/reference/vmod_std.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vsl.html" title="Shared Memory Logging"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vmod.html" title="VMOD - Varnish Modules"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

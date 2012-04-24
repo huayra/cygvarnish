@@ -1,0 +1,162 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Varnish Installation &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="next" title="Prerequisites" href="prerequisites.html" />
+    <link rel="prev" title="Welcome to Varnish&#39;s documentation!" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="prerequisites.html" title="Prerequisites"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="Welcome to Varnish&#39;s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="varnish-installation">
+<span id="install-index"></span><h1>Varnish Installation<a class="headerlink" href="#varnish-installation" title="Permalink to this headline">¶</a></h1>
+<p>This document explains how to get Varnish onto your system, where
+to get help, how report bugs etc.  In other words, it is a manual
+about pretty much everything else than actually using Varnish to
+move traffic.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing Varnish</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#source-or-packages">Source or packages?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#freebsd">FreeBSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#centos-redhat">CentOS/RedHat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#debian-ubuntu">Debian/Ubuntu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#other-systems">Other systems</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install.html#compiling-varnish-from-source">Compiling Varnish from source</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#build-dependencies-on-debian-ubuntu">Build dependencies on Debian / Ubuntu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#build-dependencies-on-red-hat-centos">Build dependencies on Red Hat / CentOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#configuring-and-compiling">Configuring and compiling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#installing">Installing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="help.html">Getting hold of us</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="help.html#irc-channel">IRC Channel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="help.html#mailing-lists">Mailing Lists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="help.html#trouble-tickets">Trouble Tickets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="help.html#commercial-support">Commercial Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bugs.html">Reporting bugs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bugs.html#varnish-crashes">Varnish crashes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bugs.html#varnish-goes-on-vacation">Varnish goes on vacation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bugs.html#varnish-does-something-wrong">Varnish does something wrong</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="upgrade.html">Upgrading from Varnish 2.1 to 3.0</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="upgrade.html#changes-to-vcl">Changes to VCL</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upgrade.html#string-concatenation-operator">string concatenation operator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="upgrade.html#no-more-escapes-in-strings">no more %-escapes in strings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="upgrade.html#log-moved-to-the-std-vmod"><tt class="docutils literal"><span class="pre">log</span></tt> moved to the std vmod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="upgrade.html#purges-are-now-called-bans">purges are now called bans</a></li>
+<li class="toctree-l3"><a class="reference internal" href="upgrade.html#beresp-cacheable-is-gone"><tt class="docutils literal"><span class="pre">beresp.cacheable</span></tt> is gone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="upgrade.html#returns-are-now-done-with-the-return-function">returns are now done with the <tt class="docutils literal"><span class="pre">return()</span></tt> function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="upgrade.html#req-hash-is-replaced-with-hash-data"><tt class="docutils literal"><span class="pre">req.hash</span></tt> is replaced with <tt class="docutils literal"><span class="pre">hash_data()</span></tt></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upgrade.html#esi-is-replaced-with-beresp-do-esi"><tt class="docutils literal"><span class="pre">esi</span></tt> is replaced with <tt class="docutils literal"><span class="pre">beresp.do_esi</span></tt></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upgrade.html#pass-in-vcl-fetch-renamed-to-hit-for-pass"><tt class="docutils literal"><span class="pre">pass</span></tt> in <tt class="docutils literal"><span class="pre">vcl_fetch</span></tt> renamed to <tt class="docutils literal"><span class="pre">hit_for_pass</span></tt></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upgrade.html#changes-to-behaviour">Changes to behaviour</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../index.html"
+                        title="previous chapter">Welcome to Varnish's documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="prerequisites.html"
+                        title="next chapter">Prerequisites</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/installation/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="prerequisites.html" title="Prerequisites"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="Welcome to Varnish&#39;s documentation!"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

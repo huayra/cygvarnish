@@ -1,0 +1,141 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Backend servers &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Using Varnish" href="index.html" />
+    <link rel="next" title="Starting Varnish" href="starting_varnish.html" />
+    <link rel="prev" title="Using Varnish" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="starting_varnish.html" title="Starting Varnish"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Using Varnish"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="backend-servers">
+<span id="tutorial-backend-servers"></span><h1>Backend servers<a class="headerlink" href="#backend-servers" title="Permalink to this headline">¶</a></h1>
+<p>Varnish has a concept of &quot;backend&quot; or &quot;origin&quot; servers. A backend
+server is the server providing the content Varnish will accelerate.</p>
+<p>Our first task is to tell Varnish where it can find its content. Start
+your favorite text editor and open the varnish default configuration
+file. If you installed from source this is
+/usr/local/etc/varnish/default.vcl, if you installed from a package it
+is probably /etc/varnish/default.vcl.</p>
+<p>Somewhere in the top there will be a section that looks a bit like this.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># backend default {</span>
+<span class="c">#     .host = &quot;127.0.0.1&quot;;</span>
+<span class="c">#     .port = &quot;8080&quot;;</span>
+<span class="c"># }</span>
+</pre></div>
+</div>
+<p>We comment in this bit of text and change the port setting from 8080
+to 80, making the text look like.:</p>
+<div class="highlight-python"><pre>backend default {
+      .host = "127.0.0.1";
+      .port = "80";
+}</pre>
+</div>
+<p>Now, this piece of configuration defines a backend in Varnish called
+<em>default</em>. When Varnish needs to get content from this backend it will
+connect to port 80 on localhost (127.0.0.1).</p>
+<p>Varnish can have several backends defined and can you can even join
+several backends together into clusters of backends for load balancing
+purposes.</p>
+<p>Now that we have the basic Varnish configuration done, let us start up
+Varnish on port 8080 so we can do some fundamental testing on it.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Using Varnish</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="starting_varnish.html"
+                        title="next chapter">Starting Varnish</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/backend_servers.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="starting_varnish.html" title="Starting Varnish"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Using Varnish"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

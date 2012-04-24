@@ -1,0 +1,261 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>varnishtop &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="The Varnish Reference Manual" href="index.html" />
+    <link rel="next" title="Shared Memory Logging and Statistics" href="shmem.html" />
+    <link rel="prev" title="varnishtest" href="varnishtest.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="shmem.html" title="Shared Memory Logging and Statistics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="varnishtest.html" title="varnishtest"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="varnishtop">
+<h1>varnishtop<a class="headerlink" href="#varnishtop" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="varnish-log-entry-ranking">
+<h2>Varnish log entry ranking<a class="headerlink" href="#varnish-log-entry-ranking" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Dag-Erling Smørgrav</td>
+</tr>
+<tr class="field"><th class="field-name">Date:</th><td class="field-body">2010-05-31</td>
+</tr>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body">1.0</td>
+</tr>
+<tr class="field"><th class="field-name">Manual section:</th><td class="field-body">1</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="synopsis">
+<h3>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h3>
+<p>varnishtop [-1] [-b] [-C] [-c] [-d] [-f] [-I regex]
+[-i tag] [-n varnish_name] [-r file] [-V] [-X regex]
+[-x tag]</p>
+</div>
+<div class="section" id="description">
+<h3>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<p>The varnishtop utility reads <tt class="docutils literal"><span class="pre">varnishd(1)</span></tt> shared memory logs and
+presents a continuously updated list of the most commonly occurring
+log entries.  With suitable filtering using the <tt class="docutils literal"><span class="pre">-I</span></tt>, <tt class="docutils literal"><span class="pre">-i</span></tt>, <tt class="docutils literal"><span class="pre">-X</span></tt>
+and <tt class="docutils literal"><span class="pre">-x</span></tt> options, it can be used to display a ranking of requested
+documents, clients, user agents, or any other information which is
+recorded in the log.</p>
+<p>The following options are available:</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-1</span></kbd></td>
+<td>Instead of presenting of a continuously updated display,
+print the statistics once and exit. Implies <tt class="docutils literal"><span class="pre">-d</span></tt>.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-b</span></kbd></td>
+<td>Include log entries which result from communication
+with a backend server.  If neither <tt class="docutils literal"><span class="pre">-b</span></tt> nor <tt class="docutils literal"><span class="pre">-c</span></tt> is
+specified, varnishtop acts as if they both were.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-C</span></kbd></td>
+<td>Ignore case when matching regular expressions.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-c</span></kbd></td>
+<td>Include log entries which result from communication
+with a client.  If neither <tt class="docutils literal"><span class="pre">-b</span></tt> nor <tt class="docutils literal"><span class="pre">-c</span></tt> is specified,
+varnishtop acts as if they both were.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-d</span></kbd></td>
+<td>Process old log entries on startup.  Normally, varnishtop
+will only process entries which are written to the log
+after it starts.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-f</span></kbd></td>
+<td>Sort and group only on the first field of each log entry.
+This is useful when displaying e.g. stataddr entries,
+where the first field is the client IP address.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-I <var>regex</var></span></kbd></td>
+<td>Include log entries which match the specified regular
+expression.  If neither <tt class="docutils literal"><span class="pre">-I</span></tt> nor <tt class="docutils literal"><span class="pre">-i</span></tt> is specified, all log
+entries are included.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-i <var>tag</var></span></kbd></td>
+<td>Include log entries with the specified tag.  If neither <tt class="docutils literal"><span class="pre">-I</span></tt>
+nor <tt class="docutils literal"><span class="pre">-i</span></tt> is specified, all log entries are included.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-p <var>period</var></span></kbd></td>
+<td>Specifies the number of seconds to measure over, the default
+is 60 seconds. The first number in the list is the average
+number of requests seen over this time period.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-n</span></kbd></td>
+<td>Specifies the name of the varnishd instance to get logs from.
+If <tt class="docutils literal"><span class="pre">-n</span></tt> is not specified, the host name is used.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-r <var>file</var></span></kbd></td>
+<td>Read log entries from file instead of shared memory.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-V</span></kbd></td>
+<td>Display the version number and exit.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-X <var>regex</var></span></kbd></td>
+<td>Exclude log entries which match the specified regular expression.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-x <var>tag</var></span></kbd></td>
+<td>Exclude log entries with the specified tag.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="examples">
+<h3>EXAMPLES<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<p>The following example displays a continuously updated list of the most
+frequently requested URLs::</p>
+<div class="highlight-python"><pre>varnishtop -i RxURL</pre>
+</div>
+<p>The following example displays a continuously updated list of the most
+commonly used user agents::</p>
+<div class="highlight-python"><pre>varnishtop -i RxHeader -C -I ^User-Agent</pre>
+</div>
+</div>
+<div class="section" id="see-also">
+<h3>SEE ALSO<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>varnishd(1)</li>
+<li>varnishhist(1)</li>
+<li>varnishlog(1)</li>
+<li>varnishncsa(1)</li>
+<li>varnishstat(1)</li>
+</ul>
+</div>
+<div class="section" id="history">
+<h3>HISTORY<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h3>
+<p>The varnishtop utility was originally developed by Poul-Henning Kamp
+in cooperation with Verdens Gang AS and Varnish Software AS, and later
+substantially rewritten by Dag-Erling Smørgrav.  This manual page was
+written by Dag-Erling Smørgrav.</p>
+</div>
+<div class="section" id="copyright">
+<h3>COPYRIGHT<a class="headerlink" href="#copyright" title="Permalink to this headline">¶</a></h3>
+<p>This document is licensed under the same licence as Varnish
+itself. See LICENCE for details.</p>
+<ul class="simple">
+<li>Copyright (c) 2006 Verdens Gang AS</li>
+<li>Copyright (c) 2006-2011 Varnish Software AS</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">varnishtop</a><ul>
+<li><a class="reference internal" href="#varnish-log-entry-ranking">Varnish log entry ranking</a><ul>
+<li><a class="reference internal" href="#synopsis">SYNOPSIS</a></li>
+<li><a class="reference internal" href="#description">DESCRIPTION</a></li>
+<li><a class="reference internal" href="#examples">EXAMPLES</a></li>
+<li><a class="reference internal" href="#see-also">SEE ALSO</a></li>
+<li><a class="reference internal" href="#history">HISTORY</a></li>
+<li><a class="reference internal" href="#copyright">COPYRIGHT</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="varnishtest.html"
+                        title="previous chapter">varnishtest</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="shmem.html"
+                        title="next chapter">Shared Memory Logging and Statistics</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/reference/varnishtop.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="shmem.html" title="Shared Memory Logging and Statistics"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="varnishtest.html" title="varnishtest"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

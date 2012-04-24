@@ -1,0 +1,50 @@
+varnishtest "test basic gunzip for client"
+
+server s1 {
+	rxreq
+	expect req.http.accept-encoding == "gzip"
+	expect req.url == "/foo"
+	txresp -nolen -gziplen 4100
+	accept
+	rxreq
+	expect req.url == "/bar"
+	txresp -body {<H1><esi:include src="/foo"/></H1>}
+} -start
+
+varnish v1 \
+	-storage "-smalloc,2m" \
+	-cliok "param.set http_gzip_support true" \
+	-cliok "param.set gzip_memlevel 1" \
+	-vcl+backend {
+
+	sub vcl_fetch {
+		set beresp.do_esi = true;
+	}
+} -start
+
+varnish v1 -cliok "param.set fetch_chunksize 4"
+
+client c1 {
+	txreq -url /foo -hdr "Accept-Encoding: gzip"
+	rxresp
+	gunzip
+	expect resp.http.content-encoding == "gzip"
+	expect resp.bodylen == 4100
+} -run
+
+# If this fails, the multiple storage allocations did not happen
+varnish v1 -expect SMA.s0.c_req > 2
+
+client c1 {
+	# See varnish can gunzip it.
+	txreq -url /foo -hdr "Accept-Encoding: null"
+	rxresp
+	expect resp.http.content-encoding == "resp.http.content-encoding"
+	expect resp.bodylen == 4100
+
+	# See varnish can gunzip it, inside ESI
+	txreq -url /bar -hdr "Accept-Encoding: null"
+	rxresp
+	expect resp.http.content-encoding == "resp.http.content-encoding"
+	expect resp.bodylen == 4109
+} -run

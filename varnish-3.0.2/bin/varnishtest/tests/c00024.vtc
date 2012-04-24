@@ -1,0 +1,38 @@
+varnishtest "Test restart in vcl_error"
+
+server s1 {
+        rxreq 
+        txresp 
+} -start
+
+server s2 {
+} -start
+
+varnish v1 -vcl { 
+	backend bad { 
+		.host = "${s2_addr}";
+		.port = "${s2_port}";
+	}
+	backend good { 
+		.host = "${s1_addr}";
+		.port = "${s1_port}";
+	}
+	sub vcl_recv {
+		if (req.restarts > 0) {
+			set req.backend = good;
+		}
+	}
+	sub vcl_error { 
+		if (req.restarts < 1) { 
+			return (restart); 
+		} else { 
+			set obj.status = 201; 
+		}
+	 }
+ } -start 
+
+client c1 {
+        txreq -url "/"
+        rxresp
+        expect resp.status == 200
+} -run

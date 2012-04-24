@@ -1,0 +1,232 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>varnishstat &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="The Varnish Reference Manual" href="index.html" />
+    <link rel="next" title="varnishtest" href="varnishtest.html" />
+    <link rel="prev" title="varnishsizes" href="varnishsizes.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="varnishtest.html" title="varnishtest"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="varnishsizes.html" title="varnishsizes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="varnishstat">
+<span id="reference-varnishstat"></span><h1>varnishstat<a class="headerlink" href="#varnishstat" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="varnish-cache-statistics">
+<h2>Varnish Cache statistics<a class="headerlink" href="#varnish-cache-statistics" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Dag-Erling Smørgrav</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Per Buer</td>
+</tr>
+<tr class="field"><th class="field-name">Date:</th><td class="field-body">2010-06-1</td>
+</tr>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body">1.0</td>
+</tr>
+<tr class="field"><th class="field-name">Manual section:</th><td class="field-body">1</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="synopsis">
+<h3>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h3>
+<p>varnishstat [-1] [-x] [-f field_list] [-l] [-n varnish_name] [-V] [-w delay]</p>
+</div>
+<div class="section" id="description">
+<h3>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<p>The varnishstat utility displays statistics from a running varnishd(1) instance.</p>
+<p>The following options are available:</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-1</span></kbd></td>
+<td>Instead of presenting of a continuously updated display, print the statistics once and exit.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-f</span></kbd></td>
+<td>A comma separated list of the fields to display.  If it starts with '^' it is used as an exclusion
+list.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-l</span></kbd></td>
+<td>Lists the available fields to use with the -f option.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-n</span></kbd></td>
+<td>Specifies the name of the varnishd instance to get logs from.  If -n is not specified, the host name
+is used.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-V</span></kbd></td>
+<td>Display the version number and exit.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-w <var>delay</var></span></kbd></td>
+<td>Wait delay seconds between updates.  The default is 1.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-x</span></kbd></td>
+<td>Displays the result as XML once.</td></tr>
+</tbody>
+</table>
+<p>The columns in the main display are, from left to right:</p>
+<ol class="arabic simple">
+<li>Value</li>
+<li>Per-second average in the period since last update, or a period if the value can not be averaged</li>
+<li>Per-second average over process lifetime, or a period if the value can not be averaged</li>
+<li>Descriptive text</li>
+</ol>
+<p>When using the -1 option, the columns in the output are, from left to right:</p>
+<ol class="arabic simple">
+<li>Symbolic entry name</li>
+<li>Value</li>
+<li>Per-second average over process lifetime, or a period if the value can not be averaged</li>
+<li>Descriptive text</li>
+</ol>
+<p>When using the -x option, the output is:</p>
+<div class="highlight-python"><pre>&lt;stat&gt;
+  &lt;name&gt;FIELD NAME&lt;/name&gt;
+  &lt;value&gt;FIELD VALUE&lt;/value&gt;
+  &lt;description&gt;FIELD DESCRIPTION&lt;/description&gt;
+&lt;/stat&gt;</pre>
+</div>
+</div>
+<div class="section" id="see-also">
+<h3>SEE ALSO<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>varnishd(1)</li>
+<li>varnishhist(1)</li>
+<li>varnishlog(1)</li>
+<li>varnishncsa(1)</li>
+<li>varnishtop(1)</li>
+<li>curses(3)</li>
+</ul>
+</div>
+<div class="section" id="history">
+<h3>HISTORY<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h3>
+<p>The varnishstat utility was originally developed by Poul-Henning Kamp
+⟨phk&#64;phk.freebsd.dk⟩ in cooperation with Verdens Gang AS, Varnish Software AS
+and Varnish Software. Manual page written by Dag-Erling Smørgrav,
+and Per Buer.</p>
+</div>
+<div class="section" id="copyright">
+<h3>COPYRIGHT<a class="headerlink" href="#copyright" title="Permalink to this headline">¶</a></h3>
+<p>This document is licensed under the same licence as Varnish
+itself. See LICENCE for details.</p>
+<ul class="simple">
+<li>Copyright (c) 2006 Verdens Gang AS</li>
+<li>Copyright (c) 2006-2008 Varnish Software AS</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">varnishstat</a><ul>
+<li><a class="reference internal" href="#varnish-cache-statistics">Varnish Cache statistics</a><ul>
+<li><a class="reference internal" href="#synopsis">SYNOPSIS</a></li>
+<li><a class="reference internal" href="#description">DESCRIPTION</a></li>
+<li><a class="reference internal" href="#see-also">SEE ALSO</a></li>
+<li><a class="reference internal" href="#history">HISTORY</a></li>
+<li><a class="reference internal" href="#copyright">COPYRIGHT</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="varnishsizes.html"
+                        title="previous chapter">varnishsizes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="varnishtest.html"
+                        title="next chapter">varnishtest</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/reference/varnishstat.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="varnishtest.html" title="varnishtest"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="varnishsizes.html" title="varnishsizes"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

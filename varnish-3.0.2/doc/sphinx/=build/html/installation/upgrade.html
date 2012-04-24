@@ -1,0 +1,232 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Upgrading from Varnish 2.1 to 3.0 &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Varnish Installation" href="index.html" />
+    <link rel="next" title="Using Varnish" href="../tutorial/index.html" />
+    <link rel="prev" title="Reporting bugs" href="bugs.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../tutorial/index.html" title="Using Varnish"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="bugs.html" title="Reporting bugs"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Varnish Installation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="upgrading-from-varnish-2-1-to-3-0">
+<h1>Upgrading from Varnish 2.1 to 3.0<a class="headerlink" href="#upgrading-from-varnish-2-1-to-3-0" title="Permalink to this headline">¶</a></h1>
+<p>This is a compilation of items you need to pay attention to when upgrading from Varnish 2.1 to 3.0</p>
+<div class="section" id="changes-to-vcl">
+<h2>Changes to VCL<a class="headerlink" href="#changes-to-vcl" title="Permalink to this headline">¶</a></h2>
+<p>In most cases you need to update your VCL since there has been some changes to the syntax.</p>
+<div class="section" id="string-concatenation-operator">
+<h3>string concatenation operator<a class="headerlink" href="#string-concatenation-operator" title="Permalink to this headline">¶</a></h3>
+<p>String concatenation did not have an operator previously, but this has now been changed to <tt class="docutils literal"><span class="pre">+</span></tt>.</p>
+</div>
+<div class="section" id="no-more-escapes-in-strings">
+<h3>no more %-escapes in strings<a class="headerlink" href="#no-more-escapes-in-strings" title="Permalink to this headline">¶</a></h3>
+<p>To simplify strings, the %-encoding has been removed. If you need non-printable characters, you need to use inline C.</p>
+</div>
+<div class="section" id="log-moved-to-the-std-vmod">
+<h3><tt class="docutils literal"><span class="pre">log</span></tt> moved to the std vmod<a class="headerlink" href="#log-moved-to-the-std-vmod" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">log</span></tt> has moved to the std vmod:</p>
+<div class="highlight-python"><pre>log "log something";</pre>
+</div>
+<p>becomes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">std</span><span class="p">;</span>
+<span class="n">std</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&quot;log something&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>You only need to import std once.</p>
+</div>
+<div class="section" id="purges-are-now-called-bans">
+<h3>purges are now called bans<a class="headerlink" href="#purges-are-now-called-bans" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">purge()</span></tt> and <tt class="docutils literal"><span class="pre">purge_url()</span></tt> are now respectively <tt class="docutils literal"><span class="pre">ban()</span></tt> and <tt class="docutils literal"><span class="pre">ban_url()</span></tt>, so you should replace all occurences:</p>
+<div class="highlight-python"><pre>purge("req.url = " req.url);</pre>
+</div>
+<p>becomes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ban</span><span class="p">(</span><span class="s">&quot;req.url = &quot;</span> <span class="o">+</span> <span class="n">req</span><span class="o">.</span><span class="n">url</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">purge</span></tt> does not take any arguments anymore, but can be used in vcl_hit or vcl_miss to purge the item from the cache, where you would reduce ttl to 0 in Varnish 2.1:</p>
+<div class="highlight-python"><pre>sub vcl_hit {
+  if (req.request == "PURGE") {
+    set obj.ttl = 0s;
+    error 200 "Purged.";
+  }
+}</pre>
+</div>
+<p>becomes:</p>
+<div class="highlight-python"><pre>sub vcl_hit {
+  if (req.request == "PURGE") {
+    purge;
+    error 200 "Purged.";
+  }
+}</pre>
+</div>
+</div>
+<div class="section" id="beresp-cacheable-is-gone">
+<h3><tt class="docutils literal"><span class="pre">beresp.cacheable</span></tt> is gone<a class="headerlink" href="#beresp-cacheable-is-gone" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">beresp.cacheable</span></tt> is gone, and can be replaced with <tt class="docutils literal"><span class="pre">beresp.ttl</span> <span class="pre">&gt;</span> <span class="pre">0s</span></tt></p>
+</div>
+<div class="section" id="returns-are-now-done-with-the-return-function">
+<h3>returns are now done with the <tt class="docutils literal"><span class="pre">return()</span></tt> function<a class="headerlink" href="#returns-are-now-done-with-the-return-function" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">pass</span></tt>, <tt class="docutils literal"><span class="pre">pipe</span></tt>, <tt class="docutils literal"><span class="pre">lookup</span></tt>, <tt class="docutils literal"><span class="pre">deliver</span></tt>, <tt class="docutils literal"><span class="pre">fetch</span></tt>, <tt class="docutils literal"><span class="pre">hash</span></tt>, <tt class="docutils literal"><span class="pre">pipe</span></tt> and <tt class="docutils literal"><span class="pre">restart</span></tt> are no longer keywords, but arguments to <tt class="docutils literal"><span class="pre">return()</span></tt>, so:</p>
+<div class="highlight-python"><pre>sub vcl_pass {
+  pass;
+}</pre>
+</div>
+<p>becomes:</p>
+<div class="highlight-python"><pre>sub vcl_pass {
+  return(pass);
+}</pre>
+</div>
+</div>
+<div class="section" id="req-hash-is-replaced-with-hash-data">
+<h3><tt class="docutils literal"><span class="pre">req.hash</span></tt> is replaced with <tt class="docutils literal"><span class="pre">hash_data()</span></tt><a class="headerlink" href="#req-hash-is-replaced-with-hash-data" title="Permalink to this headline">¶</a></h3>
+<p>You no longer append to the hash with <tt class="docutils literal"><span class="pre">+=</span></tt>, so:</p>
+<div class="highlight-python"><pre>set req.hash += req.url;</pre>
+</div>
+<p>becomes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">hash_data</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">url</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="esi-is-replaced-with-beresp-do-esi">
+<h3><tt class="docutils literal"><span class="pre">esi</span></tt> is replaced with <tt class="docutils literal"><span class="pre">beresp.do_esi</span></tt><a class="headerlink" href="#esi-is-replaced-with-beresp-do-esi" title="Permalink to this headline">¶</a></h3>
+<p>You no longer enable ESI with <tt class="docutils literal"><span class="pre">esi</span></tt>, so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">esi</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>in <tt class="docutils literal"><span class="pre">vcl_fetch</span></tt> becomes:</p>
+<div class="highlight-python"><pre>set beresp.do_esi = true;</pre>
+</div>
+</div>
+<div class="section" id="pass-in-vcl-fetch-renamed-to-hit-for-pass">
+<h3><tt class="docutils literal"><span class="pre">pass</span></tt> in <tt class="docutils literal"><span class="pre">vcl_fetch</span></tt> renamed to <tt class="docutils literal"><span class="pre">hit_for_pass</span></tt><a class="headerlink" href="#pass-in-vcl-fetch-renamed-to-hit-for-pass" title="Permalink to this headline">¶</a></h3>
+<p>The difference in behaviour of <tt class="docutils literal"><span class="pre">pass</span></tt> in <tt class="docutils literal"><span class="pre">vcl_recv</span></tt> and
+<tt class="docutils literal"><span class="pre">vcl_fetch</span></tt> confused people, so to make it clearer that they are
+different, you must now do <tt class="docutils literal"><span class="pre">return(hit_for_pass)</span></tt> when doing a pass
+in <tt class="docutils literal"><span class="pre">vcl_fetch</span></tt>.</p>
+</div>
+</div>
+<div class="section" id="changes-to-behaviour">
+<h2>Changes to behaviour<a class="headerlink" href="#changes-to-behaviour" title="Permalink to this headline">¶</a></h2>
+<p>Varnish will return an error when headers are too large instead of just ignoring them. If the limits are too low, Varnish will return HTTP 413. You can change the limits by increasing http_req_hdr_len and http_req_size.</p>
+<p>thread_pool_max is now per thread pool, while it was a total across all pools in 2.1. If you had this set in 2.1, you should adjust it for 3.0.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Upgrading from Varnish 2.1 to 3.0</a><ul>
+<li><a class="reference internal" href="#changes-to-vcl">Changes to VCL</a><ul>
+<li><a class="reference internal" href="#string-concatenation-operator">string concatenation operator</a></li>
+<li><a class="reference internal" href="#no-more-escapes-in-strings">no more %-escapes in strings</a></li>
+<li><a class="reference internal" href="#log-moved-to-the-std-vmod"><tt class="docutils literal"><span class="pre">log</span></tt> moved to the std vmod</a></li>
+<li><a class="reference internal" href="#purges-are-now-called-bans">purges are now called bans</a></li>
+<li><a class="reference internal" href="#beresp-cacheable-is-gone"><tt class="docutils literal"><span class="pre">beresp.cacheable</span></tt> is gone</a></li>
+<li><a class="reference internal" href="#returns-are-now-done-with-the-return-function">returns are now done with the <tt class="docutils literal"><span class="pre">return()</span></tt> function</a></li>
+<li><a class="reference internal" href="#req-hash-is-replaced-with-hash-data"><tt class="docutils literal"><span class="pre">req.hash</span></tt> is replaced with <tt class="docutils literal"><span class="pre">hash_data()</span></tt></a></li>
+<li><a class="reference internal" href="#esi-is-replaced-with-beresp-do-esi"><tt class="docutils literal"><span class="pre">esi</span></tt> is replaced with <tt class="docutils literal"><span class="pre">beresp.do_esi</span></tt></a></li>
+<li><a class="reference internal" href="#pass-in-vcl-fetch-renamed-to-hit-for-pass"><tt class="docutils literal"><span class="pre">pass</span></tt> in <tt class="docutils literal"><span class="pre">vcl_fetch</span></tt> renamed to <tt class="docutils literal"><span class="pre">hit_for_pass</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#changes-to-behaviour">Changes to behaviour</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="bugs.html"
+                        title="previous chapter">Reporting bugs</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../tutorial/index.html"
+                        title="next chapter">Using Varnish</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/installation/upgrade.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../tutorial/index.html" title="Using Varnish"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="bugs.html" title="Reporting bugs"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Varnish Installation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

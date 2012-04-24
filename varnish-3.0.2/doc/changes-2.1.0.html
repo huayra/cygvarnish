@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 2.1</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 2.1</h1>
+    <h2>Changes between 2.0.6 and 2.1.0</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>Persistent storage is now experimentally supported using
+      the <span class="code">persistent</span> stevedore.  It has the same command
+      line arguments as the file stevedore.</p>
+      </li>
+      <li>
+        <p><span class="code">obj.*</span> is now called <span class="code">beresp.*</span>
+      in <span class="code">vcl_fetch</span>, and <span class="code">obj.*</span> is now
+      read-only.</p>
+      </li>
+      <li>
+        <p>The regular expression engine is now PCRE instead of POSIX
+      regular expressions.</p>
+      </li>
+      <li>
+        <p><span class="code">req.*</span> is now available
+      in <span class="code">vcl_deliver</span>.</p>
+      </li>
+      <li>
+        <p>Add saint mode where we can attempt to grace an object if
+	we don't like the backend response for some reason.</p>
+        <p>Related, add <span class="code">saintmode_threshold</span> which is the
+	threshold for the number of objects to be added to the trouble
+	list before the backend is considered sick.</p>
+      </li>
+      <li>
+        <p>Add a new hashing method called critbit.  This autoscales
+      and should work better on large object workloads than the
+      classic hash.  Critbit has been made the default hash algorithm.</p>
+      </li>
+      <li>
+        <p>When closing connections, we experimented with sending RST
+      to free up load balancers and free up threads more quickly.
+      This caused some problems with NAT routers and so has been
+      reverted for now.</p>
+      </li>
+      <li>
+        <p>Add thread that checks objects against ban list in order
+	to prevent ban list from growing forever.  Note that this
+	needs purges to be written so they don't depend
+	on <span class="code">req.*</span>.  Enabled by
+	setting <span class="code">ban_lurker_sleep</span> to a nonzero
+	value.</p>
+      </li>
+      <li>
+        <p>The shared memory log file format was limited to maximum
+      64k simultaneous connections.  This is now a 32 bit field which
+      removes this limitation.</p>
+      </li>
+      <li>
+        <p>Remove obj_workspace, this is now sized automatically.
+	</p>
+      </li>
+      <li>
+        <p>Rename acceptors to waiters</p>
+      </li>
+      <li>
+        <p><span class="code">vcl_prefetch</span> has been removed.  It was never
+      fully implemented.</p>
+      </li>
+      <li>
+        <p>Add support for authenticating CLI connections.</p>
+      </li>
+      <li>
+        <p>Add hash director that chooses which backend to use
+      depending on <span class="code">req.hash</span>.</p>
+      </li>
+      <li>
+        <p>Add client director that chooses which backend to use
+      depending on the client's IP address.  Note that this ignores
+      the <span class="code">X-Forwarded-For</span> header.</p>
+      </li>
+      <li>
+        <p><span class="code">varnishd</span> now displays a banner by default
+      when you connect to the CLI.</p>
+      </li>
+      <li>
+        <p>Increase performance somewhat by moving statistics
+	gathering into a per-worker structure that is regularly
+	flushed to the global stats.</p>
+      </li>
+      <li>
+        <p>Make sure we store the header and body of object together.
+	This may in some cases improve performance and is needed for
+	persistence.</p>
+      </li>
+      <li>
+        <p>Remove client-side address accounting.  It was never used
+      for anything and presented a performance problem.</p>
+      </li>
+      <li>
+        <p>Add a timestamp to bans, so you can know how old they are.</p>
+      </li>
+      <li>
+        <p>Quite a few people got confused over the warning about not
+	being able to lock the shared memory log into RAM, so stop
+	warning about that.</p>
+      </li>
+      <li>
+        <p>Change the default CLI timeout to 10 seconds.</p>
+      </li>
+      <li>
+        <p>We previously forced all inserts into the cache to be GET
+	requests.  This has been changed to allow POST as well in
+	order to be able to implement purge-on-POST semantics.</p>
+      </li>
+      <li>
+        <p>The CLI command <span class="code">stats</span> now only lists non-zero
+	values.</p>
+      </li>
+      <li>
+        <p>The CLI command <span class="code">stats</span> now only lists non-zero
+	values.</p>
+      </li>
+      <li>
+        <p>Use <span class="code">daemon(3)</span> from <span class="code">libcompat</span> on
+	Darwin.</p>
+      </li>
+      <li>
+        <p>Remove <span class="code">vcl_discard</span> as it causes too much
+	complexity and never actually worked particularly well.</p>
+      </li>
+      <li>
+        <p>Remove <span class="code">vcl_timeout</span> as it causes too much
+	complexity and never actually worked particularly well.</p>
+      </li>
+      <li>
+        <p>Update the documentation so it refers
+      to <span class="code">sess_workspace</span>, not <span class="code">http_workspace</span>.</p>
+      </li>
+      <li>
+        <p>Document the <span class="code">-i</span> switch
+      to <span class="code">varnishd</span> as well as
+      the <span class="code">server.identity</span>
+      and <span class="code">server.hostname</span> VCL variables.</p>
+      </li>
+      <li>
+        <p><span class="code">purge.hash</span> is now deprecated and no longer
+      shown in help listings.</p>
+      </li>
+      <li>
+        <p>When processing ESI, replace the five mandatory XML
+      entities when we encounter them.</p>
+      </li>
+      <li>
+        <p>Add string representations of time and relative
+	time.</p>
+      </li>
+      <li>
+        <p>Add locking for <span class="code">n_vbe_conn</span> to make it stop
+      underflowing.</p>
+      </li>
+      <li>
+        <p>When ESI-processing content, check for illegal XML
+      character entities.</p>
+      </li>
+      <li>
+        <p>Varnish can now connect its CLI to a remote instance when
+      starting up, rather than just being connected to.</p>
+      </li>
+      <li>
+        <p>It is no longer needed to specify the maximum number of
+	HTTP headers to allow from backends.  This is now a run-time
+	parameter.</p>
+      </li>
+      <li>
+        <p>The <span class="code">X-Forwarded-For</span> header is now generated
+      by <span class="code">vcl_recv</span> rather than the C code.</p>
+      </li>
+      <li>
+        <p>It is now possible to not send all CLI traffic to
+	syslog.</p>
+      </li>
+      <li>
+        <p>It is now possible to not send all CLI traffic to
+	syslog.</p>
+      </li>
+      <li>
+        <p>In the case of varnish crashing, it now outputs a
+      identifying string with the OS, OS revision, architecture and
+      storage parameters together with the backtrace.</p>
+      </li>
+      <li>
+        <p>Use exponential backoff when we run out of file
+	descriptors or sessions.</p>
+      </li>
+      <li>
+        <p>Allow setting backend timeouts to zero.</p>
+      </li>
+      <li>
+        <p>Count uptime in the shared memory log.</p>
+      </li>
+      <li>
+        <p>Try to detect the case of two running varnishes with the
+      same shmlog and storage by writing the master and child process
+      ids to the shmlog and refusing to start if they are still
+      running.</p>
+      </li>
+      <li>
+        <p>Make sure to use EOF mode when serving ESI content to
+	HTTP/1.0 clients.</p>
+      </li>
+      <li>
+        <p>Make sure we close the connection if it either
+	sends <span class="code">Connection: close</span> or it is a HTTP/1.0
+	backend that does not send <span class="code">Connection:
+	keep-alive</span>.</p>
+      </li>
+      <li>
+        <p>Increase the default session workspace to 64k on 64-bit
+	systems.</p>
+      </li>
+      <li>
+        <p>Make the <span class="code">epoll</span> waiter use level triggering,
+      not edge triggering as edge triggering caused problems on very
+      busy servers.</p>
+      </li>
+      <li>
+        <p>Handle unforeseen client disconnections better on Solaris.</p>
+      </li>
+      <li>
+        <p>Make session lingering apply to new sessions, not just
+      reused sessions.</p>
+      </li>
+    </ul>
+    <h3>varnishstat</h3>
+    <ul>
+      <li>
+        <p>Make use of the new uptime field in the shared memory log
+      rather than synthesizing it from the start time.</p>
+      </li>
+    </ul>
+    <h3>varnishlog</h3>
+    <ul>
+      <li>
+        <p>Exit at the end of the file when started
+	with <span class="code">-d</span>.</p>
+      </li>
+    </ul>
+    <h3>varnishadm</h3>
+    <ul>
+      <li>
+        <p><span class="code">varnishadm</span> can now have a timeout when trying
+      to connect to the running <span class="code">varnishd</span>.</p>
+      </li>
+      <li>
+        <p><span class="code">varnishadm</span> now knows how to respond to the
+      secret from a secured <span class="code">varnishd</span></p>
+      </li>
+    </ul>
+  </body>
+</html>

@@ -1,0 +1,153 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Configuration &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Frequently asked questions" href="index.html" />
+    <link rel="next" title="Logging" href="logging.html" />
+    <link rel="prev" title="HTTP" href="http.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="logging.html" title="Logging"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="http.html" title="HTTP"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Frequently asked questions</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="vcl">
+<span id="faq-vcl"></span><h2>VCL<a class="headerlink" href="#vcl" title="Permalink to this headline">¶</a></h2>
+<p><strong>What is VCL?</strong></p>
+<p>VCL is an acronym for Varnish Configuration Language.  In a VCL file, you configure how Varnish should behave.  Sample VCL files will be included in this Wiki at a later stage.</p>
+<p><strong>Where is the documentation on VCL?</strong></p>
+<p>Please see <tt class="docutils literal"><span class="pre">man</span> <span class="pre">7</span> <span class="pre">vcl</span></tt>.  There are also some real-world examples on
+the <a class="reference external" href="http://varnish-cache.org/wiki/VCLExamples">wiki</a></p>
+<p><strong>How do I load VCL file while Varnish is running?</strong></p>
+<ul class="simple">
+<li>Place the VCL file on the server</li>
+<li>Telnet into the managment port.</li>
+<li>do a &quot;vcl.load &lt;configname&gt; &lt;filename&gt;&quot; in managment interface. &lt;configname&gt; is whatever you would like to call your new configuration.</li>
+<li>do a &quot;vcl.use &lt;configname&gt;&quot; to start using your new config.</li>
+</ul>
+<p><strong>Should I use ''pipe'' or ''pass'' in my VCL code? What is the difference?</strong></p>
+<p>When varnish does a <tt class="docutils literal"><span class="pre">pass</span></tt> it acts like a normal HTTP proxy. It
+reads the request and pushes it onto the backend. The next HTTP
+request can then be handled like any other.</p>
+<p><tt class="docutils literal"><span class="pre">pipe</span></tt> is only used when Varnish for some reason can't handle the
+<tt class="docutils literal"><span class="pre">pass</span></tt>. <tt class="docutils literal"><span class="pre">pipe</span></tt> reads the request, pushes in onty the backend
+_only_ pushes bytes back and forth, with no other actions taken.</p>
+<p>Since most HTTP clients do pipeline several requests into one
+connection this might give you an undesirable result - as every
+subsequent request will reuse the existing <tt class="docutils literal"><span class="pre">pipe</span></tt>.  Please see <cite>this
+article &lt;http://www.varnish-cache.org/trac/wiki/VCLExamplePipe&gt;</cite> for
+more details and a workaround.</p>
+<p>Varnish versions prior to 2.0 does not support handling a request body
+with <tt class="docutils literal"><span class="pre">pass</span></tt> mode, so in those releases <tt class="docutils literal"><span class="pre">pipe</span></tt> is required for
+correct handling.</p>
+<p>In 2.0 and later, <tt class="docutils literal"><span class="pre">pass</span></tt> will handle the request body correctly.</p>
+<p>If you get 503 errors when making a request which is <tt class="docutils literal"><span class="pre">pass</span></tt> ed, make sure
+that you're specifying the backend before returning from vcl_recv with <tt class="docutils literal"><span class="pre">pass</span></tt>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Configuration</a><ul>
+<li><a class="reference internal" href="#vcl">VCL</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="http.html"
+                        title="previous chapter">HTTP</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="logging.html"
+                        title="next chapter">Logging</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/faq/configuration.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="logging.html" title="Logging"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="http.html" title="HTTP"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Frequently asked questions</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

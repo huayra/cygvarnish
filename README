@@ -1,0 +1,70 @@
+===============
+cygwin-varnish
+===============
+
+
+INSTALLATION INSTRUCTIONS FOR COMPILED ZIP BUNDLE:
+
+The ZIP includes Varnish and Cygwin, PDCurses and PCRE DLLs. It is not needed to install previous software.
+
+1) Download zip file from https://sourceforge.net/projects/cygvarnish/files/windows-zip-bundle/
+2) Unzip file to instalation directory (default is: c:/varnish). Update Path in BAT files ( in bin subdirectory ) in case of changing default dir.
+3) Create VCL configuration file (http://www.varnish-cache.org/trac/wiki/VCL)
+4) Create varnishd-custom.bat file with custom TCP ports, VCL files and directories. There are some examples in bin directory.
+5) Execute varnish with varnishd-custom.bat.
+
+
+INSTALLATION INSTRUCTIONS FOR CYGWIN CYGPORT PACKAGES:
+
+The tar.bz2 files are instaled in Cygwin with "setup.exe" cygwin application: http://www.cygwin.com/setup.exe
+
+1) Download setup.exe in localhost
+2) Install CYGWIN enviroment with "setup.exe"
+3) Option one:
+	3.1) Select "varnish" package from package list in Web category -> package will be download from cygwin servers
+4) Option two:
+	4.1) Download cygport varnish-*.tar.bz2 varnish package files from https://sourceforge.net/projects/cygvarnish/files/cygport-packages/
+	4.2) Execute "setup.exe", select "Install from Local Directory" and select path where *.tar.bz2 files are located.
+
+
+BUILD INSTRUCTIONS FROM CYGPORT PACKAGES:
+
+1) Download cygport varnish-*-src.tar.bz2 varnish package files from https://sourceforge.net/projects/cygvarnish/files/cygport-packages/
+2) Uncompress tar.bz2 files to /usr/src directory
+3) Execute cygport commands:
+	3.1) cygport varnish-{version}.cygport prep
+	3.2) cygport varnish-{version}.cygport compile
+	3.3) cygport varnish-{version}.cygport install
+4) Compiled binaries are copied to varnish-{version}/inst
+
+
+BUILD INSTRUCTIONS FROM SOURCE:
+
+If you want build varnish on cygwin from source you must:
+
+1) Install CYGWIN environment from http://www.cygwin.com/ with the tools listed in: http://www.varnish-cache.org/trac/wiki/Installation
+		- A recent version of  GCC (3.3.x or newer should be fine, 4.2.1 or newer recommended)
+		- A POSIX-compatible make (GNU make is fine)
+		- Recent versions of the GNU autotools ( automake,  autoconf,  libtool and  ncurses) 
+		- Docutils-0.7: http://docutils.sourceforge.net/
+		
+2) Download Varnish source from: http://www.varnish-cache.org
+		
+3) Apply cygwin-varnish patch to varnish source, file: varnish-{version}.src.patch from https://sourceforge.net/projects/cygvarnish/files/patch-files/
+
+4) (optional) To reduce runtime DLL dependencies with Cygwin, install following native libraries:
+		4.1) PDCurses: http://pdcurses.sourceforge.net/   or   https://sourceforge.net/projects/cygvarnish/files/third-party-win32-sources/
+				- Uninstall ncurses from cygwin or remove theirs DLL
+				- Compile PDCurses in Cygwin or Mingw (http://2cent-info.blogspot.com/2010/07/pdcurses-for-mingw32_19.html)
+				- Modify gccwin32.mak file, adding -mno-cygwin flag in CFLAGS, LDFLAGS and LIBFLAGS for native compilation
+				
+		4.2) PCRE 7.0: http://gnuwin32.sourceforge.net/packages/pcre.htm   or   https://sourceforge.net/projects/cygvarnish/files/third-party-win32-sources/
+				- Replace cygwin *.dll, lib*.dll.a and *.pc files with native versions
+				
+5) Compile Varnish in Cygwin with standard instructions: http://www.varnish-cache.org/trac/wiki/Installation
+		- ./autogen.sh
+		- ./configure --prefix=/usr ,  ./configure --prefix=/usr/local	or ./configure --prefix=  with empty prefix, if you want to get shorter Windows Paths at the end.
+		- make
+		- make install
+		
+6) (optional) In order to save space you can create a minimal cygwin distribution only with varnish files, GCC files, cygwin1.dll, pcre.dll and pdcurses.dll.

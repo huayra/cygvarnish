@@ -1,0 +1,306 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Achieving a high hitrate &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Using Varnish" href="index.html" />
+    <link rel="next" title="Cookies" href="cookies.html" />
+    <link rel="prev" title="Statistics" href="statistics.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="cookies.html" title="Cookies"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="statistics.html" title="Statistics"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="achieving-a-high-hitrate">
+<span id="tutorial-increasing-your-hitrate"></span><h1>Achieving a high hitrate<a class="headerlink" href="#achieving-a-high-hitrate" title="Permalink to this headline">¶</a></h1>
+<p>Now that Varnish is up and running, and you can access your web
+application through Varnish. Unless your application is specifically
+written to work behind a web accelerator you'll probably need to do
+some changes to either the configuration or the application in order
+to get a high hit rate in Varnish.</p>
+<p>Varnish will not cache your data unless it's absolutely sure it is
+safe to do so. So, for you to understand how Varnish decides if and
+how to cache a page, I'll guide you through a couple of tools that you
+will find useful.</p>
+<p>Note that you need a tool to see what HTTP headers fly between you and
+the web server. On the Varnish server, the easiest is to use
+varnishlog and varnishtop but sometimes a client-side tool makes
+sense. Here are the ones I use.</p>
+<div class="section" id="tool-varnishtop">
+<h2>Tool: varnishtop<a class="headerlink" href="#tool-varnishtop" title="Permalink to this headline">¶</a></h2>
+<p>You can use varnishtop to identify what URLs are hitting the backend
+the most. <tt class="docutils literal"><span class="pre">varnishtop</span> <span class="pre">-i</span> <span class="pre">txurl</span></tt> is an essential command. You can see
+some other examples of varnishtop usage in <a class="reference internal" href="statistics.html#tutorial-statistics"><em>Statistics</em></a>.</p>
+</div>
+<div class="section" id="tool-varnishlog">
+<h2>Tool: varnishlog<a class="headerlink" href="#tool-varnishlog" title="Permalink to this headline">¶</a></h2>
+<p>When you have identified the an URL which is frequently sent to the
+backend you can use varnishlog to have a look at the whole request.
+<tt class="docutils literal"><span class="pre">varnishlog</span> <span class="pre">-c</span> <span class="pre">-o</span> <span class="pre">/foo/bar</span></tt> will give the whole (-o) requests coming
+from the client (-c) matching /foo/bar.</p>
+<p>For extended diagnostics headers, see
+<a class="reference external" href="http://www.varnish-cache.org/trac/wiki/VCLExampleHitMissHeader">http://www.varnish-cache.org/trac/wiki/VCLExampleHitMissHeader</a></p>
+</div>
+<div class="section" id="tool-lwp-request">
+<h2>Tool: lwp-request<a class="headerlink" href="#tool-lwp-request" title="Permalink to this headline">¶</a></h2>
+<p>lwp-request is part of The World-Wide Web library for Perl. It's a
+couple of really basic programs that can execute an HTTP request and
+give you the result. I mostly use two programs, GET and HEAD.</p>
+<p>vg.no was the first site to use Varnish and the people running Varnish
+there are quite clueful. So it's interesting to look at their HTTP
+Headers. Let's send a GET request for their home page:</p>
+<div class="highlight-python"><pre>$ GET -H 'Host: www.vg.no' -Used http://vg.no/
+GET http://vg.no/
+Host: www.vg.no
+User-Agent: lwp-request/5.834 libwww-perl/5.834
+
+200 OK
+Cache-Control: must-revalidate
+Refresh: 600
+Title: VG Nett - Forsiden - VG Nett
+X-Age: 463
+X-Cache: HIT
+X-Rick-Would-Never: Let you down
+X-VG-Jobb: http://www.finn.no/finn/job/fulltime/result?keyword=vg+multimedia Merk:HeaderNinja
+X-VG-Korken: http://www.youtube.com/watch?v=Fcj8CnD5188
+X-VG-WebCache: joanie
+X-VG-WebServer: leon</pre>
+</div>
+<p>OK. Let me explain what it does. GET usually sends off HTTP 0.9
+requests, which lack the Host header. So I add a Host header with the
+-H option. -U print request headers, -s prints response status, -e
+prints response headers and -d discards the actual content. We don't
+really care about the content, only the headers.</p>
+<p>As you can see, VG adds quite a bit of information in their
+headers. Some of the headers, like the X-Rick-Would-Never are specific
+to vg.no and their somewhat odd sense of humour. Others, like the
+X-VG-Webcache are for debugging purposes.</p>
+<p>So, to check whether a site sets cookies for a specific URL, just do:</p>
+<div class="highlight-python"><pre>GET -Used http://example.com/ |grep ^Set-Cookie</pre>
+</div>
+</div>
+<div class="section" id="tool-live-http-headers">
+<h2>Tool: Live HTTP Headers<a class="headerlink" href="#tool-live-http-headers" title="Permalink to this headline">¶</a></h2>
+<p>There is also a plugin for Firefox. <em>Live HTTP Headers</em> can show you
+what headers are being sent and recieved. Live HTTP Headers can be
+found at <a class="reference external" href="https://addons.mozilla.org/en-US/firefox/addon/3829/">https://addons.mozilla.org/en-US/firefox/addon/3829/</a> or by
+googling &quot;Live HTTP Headers&quot;.</p>
+</div>
+<div class="section" id="the-role-of-http-headers">
+<h2>The role of HTTP Headers<a class="headerlink" href="#the-role-of-http-headers" title="Permalink to this headline">¶</a></h2>
+<p>Along with each HTTP request and reponse comes a bunch of headers
+carrying metadata. Varnish will look at these headers to determine if
+it is appropriate to cache the contents and how long Varnish can keep
+the content.</p>
+<p>Please note that when considering these headers Varnish actually
+considers itself <em>part of</em> the actual webserver. The rationale being
+that both are under your control.</p>
+<p>The term <em>surrogate origin cache</em> is not really well defined by the
+IETF so RFC 2616 so the various ways Varnish works might differ from
+your expectations.</p>
+<p>Let's take a look at the important headers you should be aware of:</p>
+</div>
+<div class="section" id="cache-control">
+<h2>Cache-Control<a class="headerlink" href="#cache-control" title="Permalink to this headline">¶</a></h2>
+<p>The Cache-Control instructs caches how to handle the content. Varnish
+cares about the <em>max-age</em> parameter and uses it to calculate the TTL
+for an object.</p>
+<p>&quot;Cache-Control: nocache&quot; is ignored but if you need this you can
+easily add support for it.</p>
+<p>So make sure you issue a Cache-Control header with a max-age
+header. You can have a look at what Varnish Software's drupal server
+issues:</p>
+<div class="highlight-python"><pre>$ GET -Used http://www.varnish-software.com/|grep ^Cache-Control
+Cache-Control: public, max-age=600</pre>
+</div>
+</div>
+<div class="section" id="age">
+<h2>Age<a class="headerlink" href="#age" title="Permalink to this headline">¶</a></h2>
+<p>Varnish adds an Age header to indicate how long the object has been
+kept inside Varnish. You can grep out Age from varnishlog like this:</p>
+<div class="highlight-python"><pre>varnishlog -i TxHeader -I ^Age</pre>
+</div>
+</div>
+<div class="section" id="pragma">
+<h2>Pragma<a class="headerlink" href="#pragma" title="Permalink to this headline">¶</a></h2>
+<p>An HTTP 1.0 server might send &quot;Pragma: nocache&quot;. Varnish ignores this
+header. You could easily add support for this header in VCL.</p>
+<p>In vcl_fetch:</p>
+<div class="highlight-python"><pre>if (beresp.http.Pragma ~ "nocache") {
+   pass;
+}</pre>
+</div>
+</div>
+<div class="section" id="authorization">
+<h2>Authorization<a class="headerlink" href="#authorization" title="Permalink to this headline">¶</a></h2>
+<p>If Varnish sees an Authorization header it will pass the request. If
+this is not what you want you can unset the header.</p>
+</div>
+<div class="section" id="overriding-the-time-to-live-ttl">
+<h2>Overriding the time-to-live (ttl)<a class="headerlink" href="#overriding-the-time-to-live-ttl" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes your backend will misbehave. It might, depending on your
+setup, be easier to override the ttl in Varnish than to fix your
+somewhat cumbersome backend.</p>
+<p>You need VCL to identify the objects you want and then you set the
+beresp.ttl to whatever you want:</p>
+<div class="highlight-python"><pre>sub vcl_fetch {
+    if (req.url ~ "^/legacy_broken_cms/") {
+        set beresp.ttl = 5d;
+    }
+}</pre>
+</div>
+<p>The example will set the TTL to 5 days for the old legacy stuff on
+your site.</p>
+</div>
+<div class="section" id="forcing-caching-for-certain-requests-and-certain-responses">
+<h2>Forcing caching for certain requests and certain responses<a class="headerlink" href="#forcing-caching-for-certain-requests-and-certain-responses" title="Permalink to this headline">¶</a></h2>
+<p>Since you still have this cumbersome backend that isn't very friendly
+to work with you might want to override more stuff in Varnish. We
+recommend that you rely as much as you can on the default caching
+rules. It is perfectly easy to force Varnish to lookup an object in
+the cache but it isn't really recommended.</p>
+</div>
+<div class="section" id="normalizing-your-namespace">
+<h2>Normalizing your namespace<a class="headerlink" href="#normalizing-your-namespace" title="Permalink to this headline">¶</a></h2>
+<p>Some sites are accessed via lots of
+hostnames. <a class="reference external" href="http://www.varnish-software.com/">http://www.varnish-software.com/</a>,
+<a class="reference external" href="http://varnish-software.com/">http://varnish-software.com/</a> and <a class="reference external" href="http://varnishsoftware.com/">http://varnishsoftware.com/</a> all point
+at the same site. Since Varnish doesn't know they are different,
+Varnish will cache different versions of every page for every
+hostname. You can mitigate this in your web server configuration by
+setting up redirects or by using the following VCL:</p>
+<div class="highlight-python"><pre>if (req.http.host ~ "(?i)^(www.)?varnish-?software.com") {
+  set req.http.host = "varnish-software.com";
+}</pre>
+</div>
+</div>
+<div class="section" id="ways-of-increasing-your-hitrate-even-more">
+<h2>Ways of increasing your hitrate even more<a class="headerlink" href="#ways-of-increasing-your-hitrate-even-more" title="Permalink to this headline">¶</a></h2>
+<p>The following chapters should give your ways of further increasing
+your hitrate, especially the chapter on Cookies.</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="cookies.html#tutorial-cookies"><em>Cookies</em></a></li>
+<li><a class="reference internal" href="vary.html#tutorial-vary"><em>Vary</em></a></li>
+<li><a class="reference internal" href="purging.html#tutorial-purging"><em>Purging and banning</em></a></li>
+<li><a class="reference internal" href="esi.html#tutorial-esi"><em>Edge Side Includes</em></a></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Achieving a high hitrate</a><ul>
+<li><a class="reference internal" href="#tool-varnishtop">Tool: varnishtop</a></li>
+<li><a class="reference internal" href="#tool-varnishlog">Tool: varnishlog</a></li>
+<li><a class="reference internal" href="#tool-lwp-request">Tool: lwp-request</a></li>
+<li><a class="reference internal" href="#tool-live-http-headers">Tool: Live HTTP Headers</a></li>
+<li><a class="reference internal" href="#the-role-of-http-headers">The role of HTTP Headers</a></li>
+<li><a class="reference internal" href="#cache-control">Cache-Control</a></li>
+<li><a class="reference internal" href="#age">Age</a></li>
+<li><a class="reference internal" href="#pragma">Pragma</a></li>
+<li><a class="reference internal" href="#authorization">Authorization</a></li>
+<li><a class="reference internal" href="#overriding-the-time-to-live-ttl">Overriding the time-to-live (ttl)</a></li>
+<li><a class="reference internal" href="#forcing-caching-for-certain-requests-and-certain-responses">Forcing caching for certain requests and certain responses</a></li>
+<li><a class="reference internal" href="#normalizing-your-namespace">Normalizing your namespace</a></li>
+<li><a class="reference internal" href="#ways-of-increasing-your-hitrate-even-more">Ways of increasing your hitrate even more</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="statistics.html"
+                        title="previous chapter">Statistics</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cookies.html"
+                        title="next chapter">Cookies</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/increasing_your_hitrate.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="cookies.html" title="Cookies"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="statistics.html" title="Statistics"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

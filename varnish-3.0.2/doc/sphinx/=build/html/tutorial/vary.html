@@ -1,0 +1,164 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Vary &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Using Varnish" href="index.html" />
+    <link rel="next" title="Purging and banning" href="purging.html" />
+    <link rel="prev" title="Cookies" href="cookies.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="purging.html" title="Purging and banning"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cookies.html" title="Cookies"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="vary">
+<span id="tutorial-vary"></span><h1>Vary<a class="headerlink" href="#vary" title="Permalink to this headline">¶</a></h1>
+<p>The Vary header is sent by the web server to indicate what makes a
+HTTP object Vary. This makes a lot of sense with headers like
+Accept-Encoding. When a server issues a &quot;Vary: Accept-Encoding&quot; it
+tells Varnish that its needs to cache a separate version for every
+different Accept-Encoding that is coming from the clients. So, if a
+clients only accepts gzip encoding Varnish won't serve the version of
+the page encoded with the deflate encoding.</p>
+<p>The problem is that the Accept-Encoding field contains a lot of
+different encodings. If one browser sends:</p>
+<div class="highlight-python"><pre>Accept-Encodign: gzip,deflate</pre>
+</div>
+<p>And another one sends:</p>
+<div class="highlight-python"><pre>Accept-Encoding:: deflate,gzip</pre>
+</div>
+<p>Varnish will keep two variants of the page requested due to the
+different Accept-Encoding headers. Normalizing the accept-encoding
+header will sure that you have as few variants as possible. The
+following VCL code will normalize the Accept-Encoding headers.:</p>
+<div class="highlight-python"><pre>if (req.http.Accept-Encoding) {
+    if (req.url ~ "\.(jpg|png|gif|gz|tgz|bz2|tbz|mp3|ogg)$") {
+        # No point in compressing these
+        remove req.http.Accept-Encoding;
+    } elsif (req.http.Accept-Encoding ~ "gzip") {
+        set req.http.Accept-Encoding = "gzip";
+    } elsif (req.http.Accept-Encoding ~ "deflate") {
+        set req.http.Accept-Encoding = "deflate";
+    } else {
+        # unkown algorithm
+        remove req.http.Accept-Encoding;
+    }
+}</pre>
+</div>
+<p>The code sets the Accept-Encoding header from the client to either
+gzip, deflate with a preference for gzip.</p>
+</div>
+<div class="section" id="pitfall-vary-user-agent">
+<h1>Pitfall - Vary: User-Agent<a class="headerlink" href="#pitfall-vary-user-agent" title="Permalink to this headline">¶</a></h1>
+<p>Some applications or application servers send <em>Vary: User-Agent</em> along
+with their content. This instructs Varnish to cache a separate copy
+for every variation of User-Agent there is. There are plenty. Even a
+single patchlevel of the same browser will generate at least 10
+different User-Agent headers based just on what operating system they
+are running.</p>
+<p>So if you <em>really</em> need to Vary based on User-Agent be sure to
+normalize the header or your hit rate will suffer badly. Use the above
+code as a template.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Vary</a></li>
+<li><a class="reference internal" href="#pitfall-vary-user-agent">Pitfall - Vary: User-Agent</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cookies.html"
+                        title="previous chapter">Cookies</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="purging.html"
+                        title="next chapter">Purging and banning</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/vary.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="purging.html" title="Purging and banning"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="cookies.html" title="Cookies"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

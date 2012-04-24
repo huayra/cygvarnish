@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 1.1.2</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 1.1.2</h1>
+    <h2>Changes between 1.1.1 and 1.1.2</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>When switching to a new VCL configuration, a race
+      condition exists which may cause Varnish to reference a backend
+      which no longer exists (see <a href="http://varnish.projects.linpro.no/ticket/144">ticket #144</a>).  This race
+      condition has not been entirely eliminated, but it should occur
+      less frequently.</p>
+      </li>
+      <li>
+        <p>When dropping a TCP session before any requests were
+      processed, an assertion would be triggered due to an
+      uninitialized timestamp (see <a href="http://varnish.projects.linpro.no/ticket/132">ticket #132</a>).  The
+      timestamp is now correctly initialized.</p>
+      </li>
+      <li>
+        <p>Varnish will now correctly generate a <span class="code">Date:</span>
+      header for every response instead of copying the one it got from
+      the backend (see <a href="http://varnish.projects.linpro.no/ticket/157">ticket #157</a>).</p>
+      </li>
+      <li>
+        <p>Comparisons in VCL which involve a non-existent string
+      (usually a header which is not present in the request or object
+      being processed) would cause a NULL pointer dereference; now the
+      comparison will simply fail.</p>
+      </li>
+      <li>
+        <p>A bug in the VCL compiler which would cause a double-free
+      when processing <span class="code">include</span> directives has been
+      fixed.</p>
+      </li>
+      <li>
+        <p>A resource leak in the worker thread management code has
+      been fixed.</p>
+      </li>
+      <li>
+        <p>When connecting to a backend, Varnish will usually get the
+      address from a cache.  When the cache is refreshed, existing
+      connections may end up with a reference to an address structure
+      which no longer exists, resulting in a crash.  This race
+      condition has been somewhat mitigated, but not entirely
+      eliminated (see <a href="http://varnish.projects.linpro.no/ticket/144">ticket #144</a>.)</p>
+      </li>
+      <li>
+        <p>Varnish will now pass the correct protocol version in pipe
+      mode: the backend will get what the client sent, and vice
+      versa.</p>
+      </li>
+      <li>
+        <p>The core of the pipe mode code has been rewritten to
+      increase robustness and eliminate spurious error messages when
+      either end closes the connection in a manner Varnish did not
+      anticipate.</p>
+      </li>
+      <li>
+        <p>A memory leak in the backend code has been plugged.</p>
+      </li>
+      <li>
+        <p>When using the <span class="code">kqueue</span> acceptor, if a client
+      shuts down the request side of the connection (as many clients
+      do after sending their final request), it was possible for the
+      acceptor code to receive the <span class="code">EOF</span> event and recycle
+      the session while the last request was still being serviced,
+      resulting in a assertion failure and a crash when the worker
+      thread later tried to delete the session.  This should no longer
+      happen (see <a href="http://varnish.projects.linpro.no/ticket/162">ticket #162</a>.)</p>
+      </li>
+      <li>
+        <p>A mismatch between the recorded length of a cached object
+      and the amount of data actually present in cache for that object
+      can occasionally occur (see <a href="http://varnish.projects.linpro.no/ticket/167">ticket #167</a>.)  This has been
+      partially fixed, but may still occur for error pages generated
+      by Varnish when a problem arises while retrieving an object from
+      the backend.</p>
+      </li>
+      <li>
+        <p>Some socket-related system calls may return unexpected
+      error codes when operating on a TCP connection that has been
+      shut down at the other end.  These error codes would previously
+      cause assertion failures, but are now recognized as harmless
+      conditions.</p>
+      </li>
+    </ul>
+    <h3>varnishhist</h3>
+    <ul>
+      <li>
+        <p>Pressing <span class="code">0</span> though <span class="code">9</span> while
+      <span class="code">varnishhist</span> is running will change the refresh
+      interval to the corresponding power of two, in seconds.</p>
+      </li>
+    </ul>
+    <h3>varnishncsa</h3>
+    <ul>
+      <li>
+        <p>The <span class="code">varnishncsa</span> tool can now daemonize and
+      write a PID file like <span class="code">varnishlog</span>, using the same
+      command-line options.  It will also reopen its output upon receipt
+      of a <span class="code">SIGHUP</span> if invoked with <span class="code">-w</span>.</p>
+      </li>
+    </ul>
+    <h3>varnishstat</h3>
+    <ul>
+      <li>
+        <p>Pressing <span class="code">0</span> though <span class="code">9</span> while
+      <span class="code">varnishstat</span> is running will change the refresh
+      interval to the corresponding power of two, in seconds.</p>
+      </li>
+    </ul>
+    <h3>Build system</h3>
+    <ul>
+      <li>
+        <p>Varnish's <span class="code">&lt;queue.h&gt;</span> has been modified
+      to avoid conflicts with <span class="code">&lt;sys/queue.h&gt;</span> on
+      platforms where the latter is included indirectly through system
+      headers.</p>
+      </li>
+      <li>
+        <p>Several steps have been taken towards Solaris
+      support, but this is not yet complete.</p>
+      </li>
+      <li>
+        <p>When <span class="code">configure</span> was run without an explicit
+      prefix, Varnish's idea of the default state directory would be
+      garbage and a state directory would have to be specified
+      manually with <span class="code">-n</span>.  This has been corrected.</p>
+      </li>
+    </ul>
+  </body>
+</html>

@@ -1,0 +1,130 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Put Varnish on port 80 &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Using Varnish" href="index.html" />
+    <link rel="next" title="Varnish Configuration Language - VCL" href="vcl.html" />
+    <link rel="prev" title="Sizing your cache" href="sizing_your_cache.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vcl.html" title="Varnish Configuration Language - VCL"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="sizing_your_cache.html" title="Sizing your cache"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="put-varnish-on-port-80">
+<h1>Put Varnish on port 80<a class="headerlink" href="#put-varnish-on-port-80" title="Permalink to this headline">¶</a></h1>
+<p>Until now we've been running with Varnish on a high port, for testing
+purposes. You should test your application and if it works OK we can
+switch, so Varnish will be running on port 80 and your web server on a
+high port.</p>
+<p>First we kill off varnishd:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># pkill varnishd</span>
+</pre></div>
+</div>
+<p>and stop your web server. Edit the configuration for your web server
+and make it bind to port 8080 instead of 80. Now open the Varnish
+default.vcl and change the port of the <em>default</em> backend to 8080.</p>
+<p>Start up your web server and then start varnish:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># varnishd -f /usr/local/etc/varnish/default.vcl -s malloc,1G -T 127.0.0.1:2000</span>
+</pre></div>
+</div>
+<p>Note that we've removed the -a option. Now Varnish, as its default
+setting dictates, will bind to the http port (80). Now everyone
+accessing your site will be accessing through Varnish.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="sizing_your_cache.html"
+                        title="previous chapter">Sizing your cache</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="vcl.html"
+                        title="next chapter">Varnish Configuration Language - VCL</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/putting_varnish_on_port_80.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vcl.html" title="Varnish Configuration Language - VCL"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="sizing_your_cache.html" title="Sizing your cache"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

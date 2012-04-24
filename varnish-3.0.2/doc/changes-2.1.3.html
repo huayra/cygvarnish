@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 2.1.3</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 2.1.3</h1>
+    <h2>Changes between 2.1.2 and 2.1.3</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>Improve scalability of critbit.</p>
+      </li>
+      <li>
+        <p>The critbit hash algorithm has now been tightened to make
+      sure the tree is in a consistent state at all points, and the
+      time we wait for an object to cool off after it is eligible for
+      garbage collection has been tweaked.</p>
+      </li>
+      <li>
+        <p>Add <span class="code">log</span> command to VCL.  This emits
+      a <span class="code">VCL_log</span> entry into the shared memory log.</p>
+      </li>
+      <li>
+        <p>Only emit Length and ReqEnd log entries if we actually
+      have an XID.  This should get rid of some empty log lines in
+      varnishncsa.</p>
+      </li>
+      <li>
+        <p>Destroy directors in a predictable fashion, namely reverse
+      of creation order.</p>
+      </li>
+      <li>
+        <p>Fix bug when ESI elements spanned storage elements causing
+      a panic.</p>
+      </li>
+      <li>
+        <p>In some cases, the VCL compiler would panic instead of
+      giving sensible messages.  This has now been fixed.</p>
+      </li>
+      <li>
+        <p>Correct an off-by-one error when the requested range
+      exceeds the size of an object.</p>
+      </li>
+      <li>
+        <p>Handle requests for the end of an object correctly.</p>
+      </li>
+      <li>
+        <p>Allow tabulator characters in the third field of the
+      first line of HTTP requests</p>
+      </li>
+      <li>
+        <p>On Solaris, if the remote end sends us an RST, all system
+      calls related to that socket will return EINVAL.  We now handle
+      this better.</p>
+      </li>
+    </ul>
+    <h3>libvarnishapi</h3>
+    <ul>
+      <li>
+        <p>The <span class="code">-X</span> parameter didn't work correctly.  This
+      has been fixed.</p>
+      </li>
+    </ul>
+  </body>
+</html>

@@ -1,0 +1,341 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>varnishtest &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="The Varnish Reference Manual" href="index.html" />
+    <link rel="next" title="varnishtop" href="varnishtop.html" />
+    <link rel="prev" title="varnishstat" href="varnishstat.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="varnishtop.html" title="varnishtop"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="varnishstat.html" title="varnishstat"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="varnishtest">
+<h1>varnishtest<a class="headerlink" href="#varnishtest" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="test-program-for-varnish">
+<h2>Test program for Varnish<a class="headerlink" href="#test-program-for-varnish" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Stig Sandbeck Mathisen</td>
+</tr>
+<tr class="field"><th class="field-name">Date:</th><td class="field-body">2010-05-31</td>
+</tr>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body">1.0</td>
+</tr>
+<tr class="field"><th class="field-name">Manual section:</th><td class="field-body">1</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="synopsis">
+<h3>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>varnishtest [-n iter] [-q] [-v] file [file ...]</div></blockquote>
+</div>
+<div class="section" id="description">
+<h3>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<p>The varnishtest program is a script driven program used to test the
+Varnish Cache.</p>
+<p>The varnishtest program, when started and given one or more script
+files, can create a number of threads representing backends, some
+threads representing clients, and a varnishd process.</p>
+<p>The following options are available:</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-n <var>iter</var></span></kbd></td>
+<td>Run iter number of iterations.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-q</span></kbd></td>
+<td>Be quiet.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-v</span></kbd></td>
+<td>Be verbose.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-t</span></kbd></td>
+<td>Dunno.</td></tr>
+</tbody>
+</table>
+<p>file        File to use as a script</p>
+</div>
+<div class="section" id="scripts">
+<h3>SCRIPTS<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="example-script">
+<h4>Example script<a class="headerlink" href="#example-script" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><pre># Start a varnish instance called "v1"
+varnish v1 -arg "-b localhost:9080" -start
+
+# Create a server thread called "s1"
+server s1 {
+    # Receive a request
+    rxreq
+    # Send a standard response
+    txresp -hdr "Connection: close" -body "012345\n"
+}
+
+# Start the server thread
+server s1 -start
+
+# Create a client thread called "c1"
+client c1 {
+    # Send a request
+    txreq -url "/"
+    # Wait for a response
+    rxresp
+# Insist that it be a success
+expect resp.status == 200
+}
+
+# Run the client
+client c1 -run
+
+# Wait for the server to die
+server s1 -wait
+
+# (Forcefully) Stop the varnish instance.
+varnish v1 -stop</pre>
+</div>
+</div>
+<div class="section" id="example-script-output">
+<h4>Example script output<a class="headerlink" href="#example-script-output" title="Permalink to this headline">¶</a></h4>
+<p>The output, running this script looks as follows. The &quot;bargraph&quot; at
+the beginning of the line is an indication of the level of detail in
+the line. The second field where the message comes from. The rest of
+the line is anyones guess :-)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#  TEST tests/b00000.vtc starting</span>
+<span class="c">### v1  CMD: cd ../varnishd &amp;&amp; ./varnishd -d -d -n v1 -a :9081 -T :9001 -b localhost:9080</span>
+<span class="c">### v1  opening CLI connection</span>
+<span class="c">#### v1  debug| NB: Storage size limited to 2GB on 32 bit architecture,\n</span>
+<span class="c">#### v1  debug| NB: otherwise we could run out of address space.\n</span>
+<span class="c">#### v1  debug| storage_file: filename: ./varnish.Shkoq5 (unlinked) size 2047 MB.\n</span>
+<span class="c">### v1  CLI connection fd = 3</span>
+<span class="c">#### v1  CLI TX| start</span>
+<span class="c">#### v1  debug| Using old SHMFILE\n</span>
+<span class="c">#### v1  debug| Notice: locking SHMFILE in core failed: Operation not permitted\n</span>
+<span class="c">#### v1  debug| bind(): Address already in use\n</span>
+<span class="c">#### v1  debug| rolling(1)...</span>
+<span class="c">#### v1  debug| \n</span>
+<span class="c">#### v1  debug| rolling(2)...\n</span>
+<span class="c">#### v1  debug| Debugging mode, enter &quot;start&quot; to start child\n</span>
+<span class="c">### v1  CLI 200 &lt;start&gt;</span>
+<span class="c">##  s1  Starting server</span>
+<span class="c">### s1  listen on :9080 (fd 6)</span>
+<span class="c">##  c1  Starting client</span>
+<span class="c">##  c1  Waiting for client</span>
+<span class="c">##  s1  started on :9080</span>
+<span class="c">##  c1  started</span>
+<span class="c">### c1  connect to :9081</span>
+<span class="c">### c1  connected to :9081 fd is 8</span>
+<span class="c">#### c1  | GET / HTTP/1.1\r\n</span>
+<span class="c">#### c1  | \r\n</span>
+<span class="c">### c1  rxresp</span>
+<span class="c">#### s1  Accepted socket 7</span>
+<span class="c">### s1  rxreq</span>
+<span class="c">#### s1  | GET / HTTP/1.1\r\n</span>
+<span class="c">#### s1  | X-Varnish: 422080121\r\n</span>
+<span class="c">#### s1  | X-Forwarded-For: 127.0.0.1\r\n</span>
+<span class="c">#### s1  | Host: localhost\r\n</span>
+<span class="c">#### s1  | \r\n</span>
+<span class="c">#### s1  http[ 0] | GET</span>
+<span class="c">#### s1  http[ 1] | /</span>
+<span class="c">#### s1  http[ 2] | HTTP/1.1</span>
+<span class="c">#### s1  http[ 3] | X-Varnish: 422080121</span>
+<span class="c">#### s1  http[ 4] | X-Forwarded-For: 127.0.0.1</span>
+<span class="c">#### s1  http[ 5] | Host: localhost</span>
+<span class="c">#### s1  | HTTP/1.1 200 Ok\r\n</span>
+<span class="c">#### s1  | Connection: close\r\n</span>
+<span class="c">#### s1  | \r\n</span>
+<span class="c">#### s1  | 012345\n</span>
+<span class="c">#### s1  | \r\n</span>
+<span class="c">##  s1  ending</span>
+<span class="c">#### c1  | HTTP/1.1 200 Ok\r\n</span>
+<span class="c">#### c1  | Content-Length: 9\r\n</span>
+<span class="c">#### c1  | Date: Mon, 16 Jun 2008 22:16:55 GMT\r\n</span>
+<span class="c">#### c1  | X-Varnish: 422080121\r\n</span>
+<span class="c">#### c1  | Age: 0\r\n</span>
+<span class="c">#### c1  | Via: 1.1 varnish\r\n</span>
+<span class="c">#### c1  | Connection: keep-alive\r\n</span>
+<span class="c">#### c1  | \r\n</span>
+<span class="c">#### c1  http[ 0] | HTTP/1.1</span>
+<span class="c">#### c1  http[ 1] | 200</span>
+<span class="c">#### c1  http[ 2] | Ok</span>
+<span class="c">#### c1  http[ 3] | Content-Length: 9</span>
+<span class="c">#### c1  http[ 4] | Date: Mon, 16 Jun 2008 22:16:55 GMT</span>
+<span class="c">#### c1  http[ 5] | X-Varnish: 422080121</span>
+<span class="c">#### c1  http[ 6] | Age: 0</span>
+<span class="c">#### c1  http[ 7] | Via: 1.1 varnish</span>
+<span class="c">#### c1  http[ 8] | Connection: keep-alive</span>
+<span class="c">#### c1  EXPECT resp.status (200) == 200 (200) match</span>
+<span class="c">##  c1  ending</span>
+<span class="c">##  s1  Waiting for server</span>
+<span class="c">#### v1  CLI TX| stop</span>
+<span class="c">### v1  CLI 200 &lt;stop&gt;</span>
+<span class="c">#  TEST tests/b00000.vtc completed</span>
+</pre></div>
+</div>
+<p>If instead of 200 we had expected 201 with the line::</p>
+<div class="highlight-python"><pre>expect resp.status == 201</pre>
+</div>
+<p>The output would have ended with::</p>
+<div class="highlight-python"><pre>#### c1  http[ 0] | HTTP/1.1
+#### c1  http[ 1] | 200
+#### c1  http[ 2] | Ok
+#### c1  http[ 3] | Content-Length: 9
+#### c1  http[ 4] | Date: Mon, 16 Jun 2008 22:26:35 GMT
+#### c1  http[ 5] | X-Varnish: 648043653 648043652
+#### c1  http[ 6] | Age: 6
+#### c1  http[ 7] | Via: 1.1 varnish
+#### c1  http[ 8] | Connection: keep-alive
+---- c1  EXPECT resp.status (200) == 201 (201) failed</pre>
+</div>
+</div>
+</div>
+<div class="section" id="see-also">
+<h3>SEE ALSO<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>varnishhist(1)</li>
+<li>varnishlog(1)</li>
+<li>varnishncsa(1)</li>
+<li>varnishstat(1)</li>
+<li>varnishtop(1)</li>
+<li>vcl(7)</li>
+</ul>
+</div>
+<div class="section" id="history">
+<h3>HISTORY<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h3>
+<p>The varnishtest program was developed by Poul-Henning Kamp
+⟨phk&#64;phk.freebsd.dk⟩ in cooperation with Varnish Software AS.
+This manual page
+was written by Stig Sandbeck Mathisen ⟨ssm&#64;linpro.no⟩ using examples
+by Poul-Henning Kamp ⟨phk&#64;phk.freebsd.dk⟩.</p>
+</div>
+<div class="section" id="copyright">
+<h3>COPYRIGHT<a class="headerlink" href="#copyright" title="Permalink to this headline">¶</a></h3>
+<p>This document is licensed under the same licence as Varnish
+itself. See LICENCE for details.</p>
+<ul class="simple">
+<li>Copyright (c) 2007-2008 Varnish Software AS</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">varnishtest</a><ul>
+<li><a class="reference internal" href="#test-program-for-varnish">Test program for Varnish</a><ul>
+<li><a class="reference internal" href="#synopsis">SYNOPSIS</a></li>
+<li><a class="reference internal" href="#description">DESCRIPTION</a></li>
+<li><a class="reference internal" href="#scripts">SCRIPTS</a><ul>
+<li><a class="reference internal" href="#example-script">Example script</a></li>
+<li><a class="reference internal" href="#example-script-output">Example script output</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#see-also">SEE ALSO</a></li>
+<li><a class="reference internal" href="#history">HISTORY</a></li>
+<li><a class="reference internal" href="#copyright">COPYRIGHT</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="varnishstat.html"
+                        title="previous chapter">varnishstat</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="varnishtop.html"
+                        title="next chapter">varnishtop</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/reference/varnishtest.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="varnishtop.html" title="varnishtop"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="varnishstat.html" title="varnishstat"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >The Varnish Reference Manual</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

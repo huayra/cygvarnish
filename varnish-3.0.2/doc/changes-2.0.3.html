@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 2.0.3</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 2.0.3</h1>
+    <h2>Changes between 2.0.2 and 2.0.3</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>Handle If-Modified-Since and ESI sub-objects better,
+      fixing a problem where we sometimes neglected to insert
+      included objects.</p>
+      </li>
+      <li>
+        <p><span class="code">restart</span> in <span class="code">vcl_hit</span> is now supported.</p>
+      </li>
+      <li>
+        <p>Setting the TTL of an object to 0 seconds would sometimes
+      cause it to be delivered for up to one second - epsilon.  This
+      has been corrected and we should now never deliver those
+      objects to other clients.</p>
+      </li>
+      <li>
+        <p>The malloc storage backend now prints the maximum storage
+      size, just like the file backend.</p>
+      </li>
+      <li>
+        <p>Various small documentation bugs have been fixed.</p>
+      </li>
+      <li>
+        <p>Varnish did not set a default interval for backend
+      probes, causing it to poll the backend continuously.  This has
+      been corrected.</p>
+      </li>
+      <li>
+        <p>Allow "true" and "false" when setting boolean parameters,
+      in addition to on/off, enable/disable and yes/no.</p>
+      </li>
+      <li>
+        <p>Default to always talking HTTP 1.1 with the backend.</p>
+      </li>
+      <li>
+        <p>Varnish did not make sure the file it was loading was a
+      regular file.   This could cause Varnish to crash if it was
+      asked to load a directory or other non-regular file.  We now
+      check that the file is a regular file before loading it.</p>
+      </li>
+      <li>
+        <p>The binary heap used for expiry processing had
+      scalability problems.  Work around this by using stripes of a
+      fixed size, which should make this scale better, particularly
+      when starting up and having lots of objects.</p>
+      </li>
+      <li>
+        <p>When we imported the <span class="code">jemalloc</span> library into
+      the Varnish tree, it did not compile without warnings.  This
+      has now been fixed.</p>
+      </li>
+      <li>
+        <p>Varnish took a very long time to detect that the backend
+      did not respond.  To remedy this, we now have read timeouts in
+      addition to the connect timeout.  Both
+      the <span class="code">first_byte_timeout</span> and
+      the <span class="code">between_bytes_timeout</span> defaults to 60 seconds.
+      The connect timeout is no longer in milliseconds, but rather in
+      seconds.</p>
+      </li>
+      <li>
+        <p>Previously, the VCL to C conversion as well as the
+      invocation of the C compiler was done in the management
+      process.  This is now done in a separate sub-process.  This
+      prevents any bugs in the VCL compiler from affecting the
+      management process.</p>
+      </li>
+      <li>
+        <p>Chunked encoding headers were counted in the statistics
+      for header bytes.  They no longer are.</p>
+      </li>
+      <li>
+        <p>ESI processed objects were not counted in the statistics
+      for body bytes.  They now are.</p>
+      </li>
+      <li>
+        <p>It is now possible to adjust the maximum record length of
+      log entries in the shmlog by tuning the <span class="code">shm_reclen</span>
+      parameter.</p>
+      </li>
+      <li>
+        <p>The management parameters listed in the CLI were not
+      sorted, which made it hard to find the parameter you were
+      looking for.  They are now sorted, which should make this
+      easier.</p>
+      </li>
+      <li>
+        <p>Add a new hashing type, "critbit", which uses a lock-less
+      tree based lookup algorithm.  This is experimental and should
+      not be enabled in production environments without proper
+      testing.</p>
+      </li>
+      <li>
+        <p>The session workspace had a default size of 8k.  It is
+      now 16k, which should make VCLs where many headers are
+      processed less prone to panics.</p>
+      </li>
+      <li>
+        <p>We have seen that people seem to be confused as to which
+      actions in the different VCL functions return and which ones
+      don't.  Add a new syntax <span class="code">return(action)</span> to make
+      this more explicit.  The old syntax is still supported.</p>
+      </li>
+      <li>
+        <p>Varnish would return an error if any of the management
+      IPs listed in the <span class="code">-T</span> parameter could not be
+      listened to.  We now only return an error if none of them can
+      be listened to.</p>
+      </li>
+      <li>
+        <p>In the case of the backend or client giving us too many
+      parameters, we used to just ignore the overflowing headers.
+      This is problematic if you end up ignoreing Content-Length,
+      Transfer-Encoding and similar headers.  We now give out a 400
+      error to the client if it sends us too many and 503 if we get
+      too many from the backend.</p>
+      </li>
+      <li>
+        <p>We used panic if we got a too large chunked header.
+      This behaviour has been changed into just failing the
+      transaction.</p>
+      </li>
+      <li>
+        <p>Varnish now supports an extended purge method where it is
+      possible to do <span class="code">purge req.http.host ~ "web1.com" &amp;&amp; req.url ~ "\.png"
+      </span> and similar.  See the documentation for details.</p>
+      </li>
+      <li>
+        <p>Under heavy load, Varnish would sometimes crash when
+      trying to update the per-request statistics.  This has now been
+      fixed.</p>
+      </li>
+      <li>
+        <p>It is now possible to not save the hash string in the
+      session and object workspace.  This will save a lot of memory
+      on sites with many small objects.  Disabling
+      the <span class="code">purge_hash</span> parameter also disables
+      the <span class="code">purge.hash</span> facility.</p>
+      </li>
+      <li>
+        <p>Varnish now supports <span class="code">!~</span> as a "no match"
+      regular expression matcher.</p>
+      </li>
+      <li>
+        <p>In some cases, you could get serialised access to "pass"
+      objects.  We now make it default to the default_ttl value; this
+      can be overridden in vcl_fetch.</p>
+      </li>
+      <li>
+        <p>Varnish did not check the syntax of <span class="code">regsub</span>
+      calls properly.  More checking has been added.</p>
+      </li>
+      <li>
+        <p>If the client closed the connection while Varnish was
+      processing ESI elements, Varnish would crash while trying to
+      write the object to the client.  We now check if the client has
+      closed the connection.</p>
+      </li>
+      <li>
+        <p>The ESI parser had a bug where it would crash if an XML
+      comment would span storage segments.  This has been
+      fixed.</p>
+      </li>
+    </ul>
+    <h3>VCL Manual page</h3>
+    <ul>
+      <li>
+        <p>The documentation on how capturing parentheses work was
+      wrong.  This has been corrected.</p>
+      </li>
+      <li>
+        <p>Grace has now been documented.</p>
+      </li>
+    </ul>
+    <h3>varnishreplay</h3>
+    <ul>
+      <li>
+        <p><span class="code">varnishreplay</span> did not work correctly on
+      Linux, due to a too small stack.  This has now been fixed.</p>
+      </li>
+    </ul>
+  </body>
+</html>

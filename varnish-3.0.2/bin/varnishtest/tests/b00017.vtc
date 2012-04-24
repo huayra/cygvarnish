@@ -1,0 +1,17 @@
+varnishtest "Check that we close one error"
+
+varnish v1 -vcl { 
+	backend foo {
+		.host = "${bad_ip}"; .port = "9080";
+	}
+	sub vcl_recv {
+		error 888;
+	}
+} -start
+
+client c1 {
+	txreq -url "/"
+	rxresp
+	expect resp.status == 888
+	expect resp.http.connection == close
+} -run

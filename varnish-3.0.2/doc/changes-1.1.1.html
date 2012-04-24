@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 1.1.1</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 1.1.1</h1>
+    <h2>Changes between 1.1 and 1.1.1</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>The code required to allow VCL to read
+      <span class="code">obj.status</span>, which had accidentally been left out,
+      has now been added.</p>
+      </li>
+      <li>
+        <p>Varnish will now always include a <span class="code">Connection:</span>
+      header in its reply to the client, to avoid possible
+      misunderstandings.</p>
+      </li>
+      <li>
+        <p>A bug that triggered an assertion failure when generating
+      synthetic error documents has been corrected.</p>
+      </li>
+      <li>
+        <p>A new VCL function, <span class="code">purge_url</span>, provides the
+      same functionality as the <span class="code">url.purge</span> management
+      command.</p>
+      </li>
+      <li>
+        <p>Previously, Varnish assumed that the response body should
+      be sent only if the request method was <span class="code">GET</span>.  This
+      was a problem for custom request methods (such as
+      <span class="code">PURGE</span>), so the logic has been changed to always
+      send the response body except in the specific case of a
+      <span class="code">HEAD</span> request.</p>
+      </li>
+      <li>
+        <p>Changes to run-time parameters are now correctly
+      propagated to the child process.</p>
+      </li>
+      <li>
+        <p>Due to the way run-time parameters are initialized at
+      startup, <span class="code">varnishd</span> previously required the
+      <span class="code">nobody</span> user and the <span class="code">nogroup</span> group to
+      exist even if a different user and group were specified on the
+      command line.  This has been corrected.</p>
+      </li>
+      <li>
+        <p>Under certain conditions, the VCL compiler would carry on
+      after a syntax error instead of exiting after reporting the
+      error.  This has been corrected.</p>
+      </li>
+      <li>
+        <p>The manner in which the hash string is assembled has been
+      modified to reduce memory usage and memory-to-memory
+      copying.</p>
+      </li>
+      <li>
+        <p>Before calling <span class="code">vcl_miss</span>, Varnish assembles a
+      tentative request object for the backend request which will
+      usually follow.  This object would be leaked if
+      <span class="code">vcl_miss</span> returned anything else than
+      <span class="code">fetch</span>.  This has been corrected.</p>
+      </li>
+      <li>
+        <p>The code necessary to handle an <span class="code">error</span> return
+      from <span class="code">vcl_fetch</span> and <span class="code">vcl_deliver</span> had
+      inadvertantly been left out.  This has been corrected.</p>
+      </li>
+      <li>
+        <p>Varnish no longer prints a spurious "child died" message
+      (the result of reaping the compiler process) after compiling a
+      new VCL configuration.</p>
+      </li>
+      <li>
+        <p>Under some circumstances, due to an error in the workspace
+      management code, Varnish would lose the "tail" of a request,
+      i.e. the part of the request that has been received from the
+      client but not yet processed.  The most obvious symptom of this
+      was that POST requests would work with some browsers but not
+      others, depending on details of the browser's HTTP
+      implementation.  This has been corrected.</p>
+      </li>
+      <li>
+        <p>On some platforms, due to incorrect assumptions in the CLI
+      code, the management process would crash while processing
+      commands received over the management port.  This has been
+      corrected.</p>
+      </li>
+    </ul>
+    <h3>Build system</h3>
+    <ul>
+      <li>
+        <p>The top-level Makefile will now honor
+      <span class="code">$DESTDIR</span> when creating the state directory.</p>
+      </li>
+      <li>
+        <p>The Debian and RedHat packages are now split into three
+      (main / lib / devel) as is customary.</p>
+      </li>
+      <li>
+        <p>A number of compile-time and run-time portability issues
+      have been addressed.</p>
+      </li>
+      <li>
+        <p>The <span class="code">autogen.sh</span> script had workarounds for
+      problems with the GNU autotools on FreeBSD; these are no longer
+      needed and have been removed.</p>
+      </li>
+      <li>
+        <p>The <span class="code">libcompat</span> library has been renamed to
+      <span class="code">libvarnishcompat</span> and is now dynamic rather than
+      static.  This simplifies the build process and resolves an issue
+      with the Mac OS X linker.</p>
+      </li>
+    </ul>
+  </body>
+</html>

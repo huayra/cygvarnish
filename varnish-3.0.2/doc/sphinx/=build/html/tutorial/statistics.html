@@ -1,0 +1,164 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Statistics &mdash; Varnish version 3.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Varnish version 3.0.2 documentation" href="../index.html" />
+    <link rel="up" title="Using Varnish" href="index.html" />
+    <link rel="next" title="Achieving a high hitrate" href="increasing_your_hitrate.html" />
+    <link rel="prev" title="Varnish Configuration Language - VCL" href="vcl.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="increasing_your_hitrate.html" title="Achieving a high hitrate"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vcl.html" title="Varnish Configuration Language - VCL"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="statistics">
+<span id="tutorial-statistics"></span><h1>Statistics<a class="headerlink" href="#statistics" title="Permalink to this headline">¶</a></h1>
+<p>Now that your varnish is up and running let's have a look at how it is
+doing. There are several tools that can help.</p>
+<div class="section" id="varnishtop">
+<h2>varnishtop<a class="headerlink" href="#varnishtop" title="Permalink to this headline">¶</a></h2>
+<p>The varnishtop utility reads the shared memory logs and presents a
+continuously updated list of the most commonly occurring log entries.</p>
+<p>With suitable filtering using the -I, -i, -X and -x options, it can be
+used to display a ranking of requested documents, clients, user
+agents, or any other information which is recorded in the log.</p>
+<p><tt class="docutils literal"><span class="pre">varnishtop</span> <span class="pre">-i</span> <span class="pre">rxurl</span></tt> will show you what URLs are being asked for
+by the client. <tt class="docutils literal"><span class="pre">varnishtop</span> <span class="pre">-i</span> <span class="pre">txurl</span></tt> will show you what your backend
+is being asked the most. <tt class="docutils literal"><span class="pre">varnishtop</span> <span class="pre">-i</span> <span class="pre">RxHeader</span> <span class="pre">-I</span>
+<span class="pre">Accept-Encoding</span></tt> will show the most popular Accept-Encoding header
+the client are sending you.</p>
+</div>
+<div class="section" id="varnishhist">
+<h2>varnishhist<a class="headerlink" href="#varnishhist" title="Permalink to this headline">¶</a></h2>
+<p>The varnishhist utility reads varnishd(1) shared memory logs and
+presents a continuously updated histogram showing the distribution of
+the last N requests by their processing.  The value of N and the
+vertical scale are displayed in the top left corner.  The horizontal
+scale is logarithmic.  Hits are marked with a pipe character (&quot;|&quot;),
+and misses are marked with a hash character (&quot;#&quot;).</p>
+</div>
+<div class="section" id="varnishsizes">
+<h2>varnishsizes<a class="headerlink" href="#varnishsizes" title="Permalink to this headline">¶</a></h2>
+<p>Varnishsizes does the same as varnishhist, except it shows the size of
+the objects and not the time take to complete the request. This gives
+you a good overview of how big the objects you are serving are.</p>
+</div>
+<div class="section" id="varnishstat">
+<h2>varnishstat<a class="headerlink" href="#varnishstat" title="Permalink to this headline">¶</a></h2>
+<p>Varnish has lots of counters. We count misses, hits, information about
+the storage, threads created, deleted objects. Just about
+everything. varnishstat will dump these counters. This is useful when
+tuning varnish.</p>
+<p>There are programs that can poll varnishstat regularly and make nice
+graphs of these counters. One such program is Munin. Munin can be
+found at <a class="reference external" href="http://munin-monitoring.org/">http://munin-monitoring.org/</a> . There is a plugin for munin in
+the varnish source code.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Statistics</a><ul>
+<li><a class="reference internal" href="#varnishtop">varnishtop</a></li>
+<li><a class="reference internal" href="#varnishhist">varnishhist</a></li>
+<li><a class="reference internal" href="#varnishsizes">varnishsizes</a></li>
+<li><a class="reference internal" href="#varnishstat">varnishstat</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="vcl.html"
+                        title="previous chapter">Varnish Configuration Language - VCL</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="increasing_your_hitrate.html"
+                        title="next chapter">Achieving a high hitrate</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/statistics.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="increasing_your_hitrate.html" title="Achieving a high hitrate"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vcl.html" title="Varnish Configuration Language - VCL"
+             >previous</a> |</li>
+        <li><a href="../index.html">Varnish version 3.0.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Using Varnish</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Varnish Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

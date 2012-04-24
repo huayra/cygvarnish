@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Change log for Varnish 2.0.1</title>
+    <link rel="stylesheet" type="text/css" href="changes.css"/>
+  </head>
+  <body>
+    <h1>Change log for Varnish 2.0.1</h1>
+    <h2>Changes between 2.0 and 2.0.1</h2>
+    <h3>varnishd</h3>
+    <ul>
+      <li>
+        <p>When receiving a garbled HTTP
+      request, <span class="code">varnishd</span> would sometimes crash.  This has
+      been fixed.</p>
+      </li>
+      <li>
+        <p>There was an off-by-one error in the ACL compilation.
+      Now fixed.</p>
+      </li>
+    </ul>
+    <h3>Red Hat spec file</h3>
+    <ul>
+      <li>
+        <p>A typo in the spec file made the .rpm file names wrong.</p>
+      </li>
+    </ul>
+  </body>
+</html>

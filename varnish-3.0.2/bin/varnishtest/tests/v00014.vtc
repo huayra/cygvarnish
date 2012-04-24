@@ -1,0 +1,58 @@
+varnishtest "Check req.backend.healthy"
+
+server s1 {
+	rxreq
+	expect req.url == "/"
+	txresp -body "slash"
+} -start
+
+varnish v1 -vcl {
+
+	probe foo {
+		.url = "/";
+		.timeout = 1s;
+		.interval = 1s;
+		.window = 3;
+		.threshold = 2;
+		.initial = 0;
+	}
+
+	backend default {
+		.host = "${s1_addr}";
+		.port = "${s1_port}";
+		.max_connections = 1;
+		.probe = foo;
+	}
+
+	sub vcl_recv {
+		if (req.backend.healthy) {
+			error 200 "Backend healthy";
+		} else {
+			error 500 "Backend sick";
+		}
+	}
+} -start
+
+client c1 {
+	txreq
+	rxresp
+	expect resp.status == 500
+} -run
+
+server s1 {
+	rxreq
+	expect req.url == "/"
+	txresp -body "slash"
+} -start
+
+server s1 {
+	rxreq
+	expect req.url == "/foo"
+	txresp -body "foobar"
+} -start
+
+client c1 {
+	txreq -url "/foo"
+	rxresp
+	expect resp.status == 200
+} -run

@@ -1,0 +1,811 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.8.1: http://docutils.sourceforge.net/" />
+<title></title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 7056 2011-06-17 10:50:48Z milde $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+object[type="image/svg+xml"], object[type="application/x-shockwave-flash"] {
+  overflow: hidden;
+}
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left, .figure.align-left, object.align-left {
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
+
+img.align-right, .figure.align-right, object.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+img.align-center, .figure.align-center, object.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: inherit }
+
+/* div.align-center * { */
+/*   text-align: left } */
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block, pre.math {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document">
+
+
+<div class="section" id="changes-from-3-0-2-rc-1-to-3-0-2">
+<h1>Changes from 3.0.2 rc 1 to 3.0.2</h1>
+<div class="section" id="varnishd">
+<h2>Varnishd</h2>
+<ul class="simple">
+<li>Make the size of the synthetic object workspace equal to
+<cite>http_resp_size</cite> and add workaround to avoid a crash when setting
+too long response strings for synthetic objects.</li>
+<li>Ensure the ban lurker always sleeps the advertised 1 second when it
+does not have anything to do.</li>
+<li>Remove error from <cite>vcl_deliver</cite>.  Previously this would assert while
+it will now give a syntax error.</li>
+</ul>
+</div>
+<div class="section" id="varnishncsa">
+<h2>varnishncsa</h2>
+<ul class="simple">
+<li>Add default values for some fields when logging incomplete records
+and document the default values.</li>
+</ul>
+</div>
+<div class="section" id="other">
+<h2>Other</h2>
+<ul class="simple">
+<li>Documentation updates</li>
+<li>Some Solaris portability updates.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="changes-from-3-0-1-to-3-0-2-rc-1">
+<h1>Changes from 3.0.1 to 3.0.2 rc 1</h1>
+<div class="section" id="id1">
+<h2>Varnishd</h2>
+<ul class="simple">
+<li>Only log the first 20 bytes of extra headers to prevent overflows.</li>
+<li>Fix crasher bug which sometimes happened if responses are queued and
+the backend sends us Vary. <a class="reference external" href="http://varnish-cache.org/trac/ticket/994">Bug #994</a>.</li>
+<li>Log correct size of compressed when uncompressing them for clients
+that do not support compression. <a href="#id26"><span class="problematic" id="id27">`Bug #996`_</span></a>.</li>
+<li>Only send Range responses if we are going to send a body. <a class="reference external" href="http://varnish-cache.org/trac/ticket/1007">Bug #1007</a>.</li>
+<li>When varnishd creates a storage file, also unlink it to avoid
+leaking disk space over time.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/1008">Bug #1008</a>.</li>
+<li>The default size of the <cite>-s file</cite> parameter has been changed to
+100MB instead of 50% of the available disk space.</li>
+<li>The limit on the number of objects we remove from the cache to make
+room for a new one was mistakenly lowered to 10 in 3.0.1.  This has
+been raised back to 50.  <a href="#id28"><span class="problematic" id="id29">`Bug #1012`_</span></a>.</li>
+<li><cite>http_req_size</cite> and <cite>http_resp_size</cite> have been increased to 8192
+bytes.  This better matches what other HTTPds have.   <a href="#id30"><span class="problematic" id="id31">`Bug #1016`_</span></a>.</li>
+</ul>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">changes.rst</tt>, line 66); <em><a href="#id2">backlink</a></em></p>
+Duplicate explicit target name: &quot;bug #1012&quot;.</div>
+</div>
+<div class="section" id="vcl">
+<h2>VCL</h2>
+<ul class="simple">
+<li>Allow relational comparisons of floating point types.</li>
+<li>Make it possible for vmods to fail loading and so cause the VCL
+loading to fail.</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h2>varnishncsa</h2>
+<ul class="simple">
+<li>Fixed crash when client was sending illegal HTTP headers.</li>
+<li><cite>%{Varnish:handling}</cite> in format strings was broken, this has been
+fixed.</li>
+</ul>
+</div>
+<div class="section" id="id4">
+<h2>Other</h2>
+<ul class="simple">
+<li>Documentation updates</li>
+<li>Some Solaris portability updates.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="changes-from-3-0-1-rc-1-to-3-0-1">
+<h1>Changes from 3.0.1 rc 1 to 3.0.1</h1>
+<div class="section" id="id5">
+<h2>Varnishd</h2>
+<ul class="simple">
+<li>Fix crash in streaming code.</li>
+<li>Add <cite>fallback</cite> director, as a variant of the <cite>round-robin</cite>
+director.</li>
+<li>The parameter <cite>http_req_size</cite> has been reduced on 32 bit machines.</li>
+</ul>
+</div>
+<div class="section" id="id6">
+<h2>VCL</h2>
+<ul class="simple">
+<li>Disallow error in the <cite>vcl_init</cite> and <cite>vcl_fini</cite> VCL functions.</li>
+</ul>
+</div>
+<div class="section" id="id7">
+<h2>varnishncsa</h2>
+<ul class="simple">
+<li>Fixed crash when using <cite>-X</cite>.</li>
+<li>Fix error when the time to first byte was in the format string.</li>
+</ul>
+</div>
+<div class="section" id="id8">
+<h2>Other</h2>
+<ul class="simple">
+<li>Documentation updates</li>
+</ul>
+</div>
+</div>
+<div class="section" id="changes-from-3-0-0-to-3-0-1-rc-1">
+<h1>Changes from 3.0.0 to 3.0.1 rc 1</h1>
+<div class="section" id="id9">
+<h2>Varnishd</h2>
+<ul class="simple">
+<li>Avoid sending an empty end-chunk when sending bodyless responsed.</li>
+<li><cite>http_resp_hdr_len</cite> and <cite>http_req_hdr_len</cite> were set to too low
+values leading to clients receiving <cite>HTTP 400 Bad Request</cite> errors.
+The limit has been increased and the error code is now <cite>HTTP 413
+Request entity too large</cite>.</li>
+<li>Objects with grace or keep set were mistakenly considered as
+candidates for the transient storage.  They now have their grace and
+keep limited to limit the memory usage of the transient stevedore.</li>
+<li>If a request was restarted from <cite>vcl_miss</cite> or <cite>vcl_pass</cite> it would
+crash.  This has been fixed.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/965">Bug #965</a>.</li>
+<li>Only the first few clients waiting for an object from the backend
+would be woken up when object arrived and this lead to some clients
+getting stuck for a long time.  This has now been fixed. <a class="reference external" href="http://varnish-cache.org/trac/ticket/963">Bug #963</a>.</li>
+<li>The <cite>hash</cite> and <cite>client</cite> directors would mistakenly retry fetching an
+object from the same backend unless health probes were enabled.
+This has been fixed and it will now retry a different backend.</li>
+</ul>
+</div>
+<div class="section" id="id10">
+<h2>VCL</h2>
+<ul class="simple">
+<li>Request specific variables such as <cite>client.*</cite> and <cite>server.*</cite> are now
+correctly marked as not available in <cite>vcl_init</cite> and <cite>vcl_fini</cite>.</li>
+<li>The VCL compiler would fault if two IP comparisons were done on the
+same line.  This now works correctly.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/948">Bug #948</a>.</li>
+</ul>
+</div>
+<div class="section" id="id11">
+<h2>varnishncsa</h2>
+<ul class="simple">
+<li>Add support for logging arbitrary request and response headers.</li>
+<li>Fix crashes if <cite>hitmiss</cite> and <cite>handling</cite> have not yet been set.</li>
+<li>Avoid printing partial log lines if there is an error in a format
+string.</li>
+<li>Report user specified format string errors better.</li>
+</ul>
+</div>
+<div class="section" id="varnishlog">
+<h2>varnishlog</h2>
+<ul class="simple">
+<li><cite>varnishlog -r</cite> now works correctly again and no longer opens the
+shared log file of the running Varnish.</li>
+</ul>
+</div>
+<div class="section" id="id12">
+<h2>Other</h2>
+<ul class="simple">
+<li>Various documentation updates.</li>
+<li>Minor compilation fixes for newer compilers.</li>
+<li>A bug in the ESI entity replacement parser has been fixed.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/961">Bug
+#961</a>.</li>
+<li>The ABI of vmods are now checked.  This will require a rebuild of
+all vmods against the new version of Varnish.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="changes-from-3-0-beta-2-to-3-0-0">
+<h1>Changes from 3.0 beta 2 to 3.0.0</h1>
+<div class="section" id="id13">
+<h2>Varnishd</h2>
+<ul class="simple">
+<li>Avoid sending an empty end-chunk when sending bodyless responsed.</li>
+</ul>
+</div>
+<div class="section" id="id14">
+<h2>VCL</h2>
+<ul class="simple">
+<li>The <cite>synthetic</cite> keyword has now been properly marked as only
+available in <cite>vcl_deliver</cite>.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/936">Bug #936</a>.</li>
+</ul>
+</div>
+<div class="section" id="varnishadm">
+<h2>varnishadm</h2>
+<ul class="simple">
+<li>Fix crash if the secret file was unreadable.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/935">Bug #935</a>.</li>
+<li>Always exit if <cite>varnishadm</cite> can't connect to the backend for any
+reason.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="changes-from-3-0-beta-1-to-3-0-beta-2">
+<h1>Changes from 3.0 beta 1 to 3.0 beta 2</h1>
+<div class="section" id="id15">
+<h2>Varnishd</h2>
+<ul class="simple">
+<li>thread_pool_min and thread_pool_max now each refer to the number of
+threads per pool, rather than being inconsistent as they were
+before.</li>
+<li>307 Temporary redirect is now considered cacheable.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/908">Bug #908</a>.</li>
+<li>The <cite>stats</cite> command has been removed from the CLI interface.  With
+the new counters, it would mean implementing more and more of
+varnishstat in the master CLI process and the CLI is
+single-threaded so we do not want to do this work there in the first
+place.  Use varnishstat instead.</li>
+</ul>
+</div>
+<div class="section" id="id16">
+<h2>VCL</h2>
+<ul class="simple">
+<li>VCL now treats null arguments (unset headers for instance) as empty
+strings.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/913">Bug #913</a>.</li>
+<li>VCL now has vcl_init and vcl_fini functions that are called when a
+given VCL has been loaded and unloaded.</li>
+<li>There is no longer any interpolation of the right hand side in bans
+where the ban is a single string.  This was confusing and you now
+have to make sure bits are inside or outside string context as
+appropriate.</li>
+<li>Varnish is now stricter in enforcing no duplication of probes,
+backends and ACLs.</li>
+</ul>
+</div>
+<div class="section" id="id17">
+<h2>varnishncsa</h2>
+<ul class="simple">
+<li>varnishncsa now ignores piped requests, since we have no way of
+knowing their return status.</li>
+</ul>
+</div>
+<div class="section" id="vmods">
+<h2>VMODs</h2>
+<ul class="simple">
+<li>The std module now has proper documentation, including a manual page</li>
+</ul>
+</div>
+</div>
+<div class="section" id="changes-from-2-1-5-to-3-0-beta-1">
+<h1>Changes from 2.1.5 to 3.0 beta 1</h1>
+<div class="section" id="upcoming-changes">
+<h2>Upcoming changes</h2>
+<ul class="simple">
+<li>The interpretation of bans will change slightly between 3.0 beta 1
+and 3.0 release.  Currently, doing <tt class="docutils literal"><span class="pre">ban(&quot;req.url</span> == req.url&quot;)</tt>
+will cause the right hand req.url to be interpreted in the context
+of the request creating the ban.  This will change so you will have
+to do <tt class="docutils literal"><span class="pre">ban(&quot;req.url</span> == &quot; + req.url)</tt> instead.  This syntax already
+works and is recommended.</li>
+</ul>
+</div>
+<div class="section" id="id18">
+<h2>Varnishd</h2>
+<ul class="simple">
+<li>Add streaming on <tt class="docutils literal">pass</tt> and <tt class="docutils literal">miss</tt>.  This is controlled by the
+<tt class="docutils literal">beresp.do_stream</tt> boolean.  This includes support for
+compression/uncompression.</li>
+<li>Add support for ESI and gzip.</li>
+<li>Handle objects larger than 2G.</li>
+<li>HTTP Range support is now enabled by default</li>
+<li>The ban lurker is enabled by default</li>
+<li>if there is a backend or director with the name <tt class="docutils literal">default</tt>, use
+that as the default backend, otherwise use the first one listed.</li>
+<li>Add many more stats counters.  Amongst those, add per storage
+backend stats and per-backend statistics.</li>
+<li>Syslog the platform we are running on</li>
+<li>The <tt class="docutils literal"><span class="pre">-l</span></tt> (shared memory log file) argument has been changed,
+please see the varnishd manual for the new syntax.</li>
+<li>The <tt class="docutils literal"><span class="pre">-S</span></tt> and <tt class="docutils literal"><span class="pre">-T</span></tt> arguments are now stored in the shmlog</li>
+<li>Fix off-by-one error when exactly filling up the workspace.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/693">Bug #693</a>.</li>
+<li>Make it possible to name storage backends.  The names have to be
+unique.</li>
+<li>Update usage output to match the code.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/683">Bug #683</a></li>
+<li>Add per-backend health information to shared memory log.</li>
+<li>Always recreate the shared memory log on startup.</li>
+<li>Add a <tt class="docutils literal">vcl_dir</tt> parameter.  This is used to resolve relative path
+names for <tt class="docutils literal">vcl.load</tt> and <tt class="docutils literal">include</tt> in .vcl files.</li>
+<li>Make it possible to specify <tt class="docutils literal"><span class="pre">-T</span> :0</tt>.  This causes varnishd to look
+for a free port automatically.  The port is written in the shared
+memory log so varnishadm can find it.</li>
+<li>Classify locks into kinds and collect stats for each kind,
+recording the data in the shared memory log.</li>
+<li>Auto-detect necessary flags for pthread support and <tt class="docutils literal">VCC_CC</tt>
+flags.  This should make Varnish somewhat happier on Solaris.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/663">Bug
+#663</a></li>
+<li>The <tt class="docutils literal">overflow_max</tt> parameter has been renamed to <tt class="docutils literal">queue_max</tt>.</li>
+<li>If setting a parameter fails, report which parameter failed as this
+is not obvious during startup.</li>
+<li>Add a parameter named <tt class="docutils literal">shortlived</tt>.  Objects whose TTL is less
+than the parameter go into transient (malloc) storage.</li>
+<li>Reduce the default <tt class="docutils literal">thread_add_delay</tt> to 2ms.</li>
+<li>The <tt class="docutils literal">max_esi_includes</tt> parameter has been renamed to
+<tt class="docutils literal">max_esi_depth</tt>.</li>
+<li>Hash string components are now logged by default.</li>
+<li>The default connect timeout parameter has been increased to 0.7
+seconds.</li>
+<li>The <tt class="docutils literal">err_ttl</tt> parameter has been removed and is replaced by a
+setting in default.vcl.</li>
+<li>The default <tt class="docutils literal">send_timeout</tt> parameter has been reduced to 1 minute.</li>
+<li>The default <tt class="docutils literal">ban_lurker</tt> sleep has been set to 10ms.</li>
+<li>When an object is banned, make sure to set its grace to 0 as well.</li>
+<li>Add <tt class="docutils literal">panic.show</tt> and <tt class="docutils literal">panic.clear</tt> CLI commands.</li>
+<li>The default <tt class="docutils literal">http_resp_hdr_len</tt> and <tt class="docutils literal">http_req_hdr_len</tt> has been
+increased to 2048 bytes.</li>
+<li>If <tt class="docutils literal">vcl_fetch</tt> results in <tt class="docutils literal">restart</tt> or <tt class="docutils literal">error</tt>, close the
+backend connection rather than fetching the object.</li>
+<li>If allocating storage for an object, try reducing the chunk size
+before evicting objects to make room.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/880">Bug #880</a></li>
+<li>Add <tt class="docutils literal">restart</tt> from <tt class="docutils literal">vcl_deliver</tt>.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/411">Bug #411</a></li>
+<li>Fix an off-by-up-to-one-minus-epsilon bug where if an object from
+the backend did not have a last-modified header we would send out a
+304 response which did include a <tt class="docutils literal"><span class="pre">Last-Modified</span></tt> header set to
+when we received the object.  However, we would compare the
+timestamp to the fractional second we got the object, meaning any
+request with the exact timestamp would get a <tt class="docutils literal">200</tt> response rather
+than the correct <tt class="docutils literal">304</tt>.</li>
+<li>Fix a race condition in the ban lurker where a serving thread and
+the lurker would both look at an object at the same time, leading to
+Varnish crashing.</li>
+<li>If a backend sends a <tt class="docutils literal"><span class="pre">Content-Length</span></tt> header and we are streaming and
+we are not uncompressing it, send the <tt class="docutils literal"><span class="pre">Content-Length</span></tt> header on,
+allowing browsers to diplay a progress bar.</li>
+<li>All storage must be at least 1M large.  This is to prevent
+administrator errors when specifying the size of storage where the
+admin might have forgotten to specify units.</li>
+</ul>
+</div>
+<div class="section" id="tools">
+<h2>Tools</h2>
+<div class="section" id="common">
+<h3>common</h3>
+<ul class="simple">
+<li>Add an <tt class="docutils literal"><span class="pre">-m</span> <span class="pre">$tag:$regex</span></tt> parameter, used for selecting some
+transactions.  The parameter can be repeated, in which case it is
+logically and-ed together.</li>
+</ul>
+</div>
+<div class="section" id="id20">
+<h3>varnishadm</h3>
+<ul class="simple">
+<li>varnishadm will now pick up the -S and -T arguments from the shared
+memory log, meaning just running it without any arguments will
+connect to the running varnish.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/875">Bug #875</a></li>
+<li>varnishadm now accepts an -n argument to specify the location of the
+shared memory log file</li>
+<li>add libedit support</li>
+</ul>
+</div>
+<div class="section" id="varnishstat">
+<h3>varnishstat</h3>
+<ul class="simple">
+<li>reopen shared memory log if the varnishd process is restarted.</li>
+<li>Improve support for selecting some, but not all fields using the
+<tt class="docutils literal"><span class="pre">-f</span></tt> argument. Please see the documentation for further details on
+the use of <tt class="docutils literal"><span class="pre">-f</span></tt>.</li>
+<li>display per-backend health information</li>
+</ul>
+</div>
+<div class="section" id="id21">
+<h3>varnishncsa</h3>
+<ul class="simple">
+<li>Report error if called with <tt class="docutils literal"><span class="pre">-i</span></tt> and <tt class="docutils literal"><span class="pre">-I</span></tt> as they do not make
+any sense for varnishncsa.</li>
+<li>Add custom log formats, specified with <tt class="docutils literal"><span class="pre">-F</span></tt>.  Most of the Apache
+log formats are supported, as well as some Varnish-specific ones.
+See the documentation for further information.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/712">Bug #712</a> and <a class="reference external" href="http://varnish-cache.org/trac/ticket/485">bug #485</a></li>
+</ul>
+</div>
+<div class="section" id="varnishtest">
+<h3>varnishtest</h3>
+<ul class="simple">
+<li>add <tt class="docutils literal"><span class="pre">-l</span></tt> and <tt class="docutils literal"><span class="pre">-L</span></tt> switches which leave <tt class="docutils literal">/tmp/vtc.*</tt> behind on
+error and unconditionally respectively.</li>
+<li>add <tt class="docutils literal"><span class="pre">-j</span></tt> parameter to run tests in parallell and use this by
+default.</li>
+</ul>
+</div>
+<div class="section" id="varnishtop">
+<h3>varnishtop</h3>
+<ul class="simple">
+<li>add <tt class="docutils literal"><span class="pre">-p</span> $period</tt> parameter.  The units in varnishtop were
+previously undefined, they are now in requests/period.  The default
+period is 60 seconds.</li>
+</ul>
+</div>
+<div class="section" id="id22">
+<h3>varnishlog</h3>
+<ul class="simple">
+<li>group requests by default.  This can be turned off by using <tt class="docutils literal"><span class="pre">-O</span></tt></li>
+<li>the <tt class="docutils literal"><span class="pre">-o</span></tt> parameter is now a no-op and is ignored.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="id23">
+<h2>VMODs</h2>
+<ul class="simple">
+<li>Add a std vmod which includes a random function, log, syslog,
+fileread, collect,</li>
+</ul>
+</div>
+<div class="section" id="id24">
+<h2>VCL</h2>
+<ul class="simple">
+<li>Change string concatenation to be done using <tt class="docutils literal">+</tt> rather than
+implicitly.</li>
+<li>Stop using <tt class="docutils literal">%xx</tt> escapes in VCL strings.</li>
+<li>Change <tt class="docutils literal">req.hash += value</tt> to <tt class="docutils literal">hash_data(value)</tt></li>
+<li>Variables in VCL now have distinct read/write access</li>
+<li><tt class="docutils literal">bereq.connect_timeout</tt> is now available in <tt class="docutils literal">vcl_pipe</tt>.</li>
+<li>Make it possible to declare probes outside of a director. Please see
+the documentation on how to do this.</li>
+<li>The VCL compiler has been reworked greatly, expanding its abilities
+with regards to what kinds of expressions it understands.</li>
+<li>Add <tt class="docutils literal">beresp.backend.name</tt>, <tt class="docutils literal">beresp.backend.ip</tt> and
+<tt class="docutils literal">beresp.backend.port</tt> variables.  They are only available from
+<tt class="docutils literal">vcl_fetch</tt> and are read only.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/481">Bug #481</a></li>
+<li>The default VCL now calls pass for any objects where
+<tt class="docutils literal">beresp.http.Vary == &quot;*&quot;</tt>.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/787">Bug #787</a></li>
+<li>The <tt class="docutils literal">log</tt> keyword has been moved to the <tt class="docutils literal">std</tt> vmod.</li>
+<li>It is now possible to choose which storage backend to be used</li>
+<li>Add variables <tt class="docutils literal"><span class="pre">storage.$name.free_space</span></tt>,
+<tt class="docutils literal"><span class="pre">storage.$name.used_space</span></tt> and <tt class="docutils literal"><span class="pre">storage.$name.happy</span></tt></li>
+<li>The variable <tt class="docutils literal">req.can_gzip</tt> tells us whether the client accepts
+gzipped objects or not.</li>
+<li><tt class="docutils literal">purge</tt> is now called <tt class="docutils literal">ban</tt>, since that is what it really is and
+has always been.</li>
+<li><tt class="docutils literal">req.esi_level</tt> is now available.  <a class="reference external" href="http://varnish-cache.org/trac/ticket/782">Bug #782</a></li>
+<li>esi handling is now controlled by the <tt class="docutils literal">beresp.do_esi</tt> boolean rather
+than the <tt class="docutils literal">esi</tt> function.</li>
+<li><tt class="docutils literal">beresp.do_gzip</tt> and <tt class="docutils literal">beresp.do_gunzip</tt> now control whether an
+uncompressed object should be compressed and a compressed object
+should be uncompressed in the cache.</li>
+<li>make it possible to control compression level using the
+<tt class="docutils literal">gzip_level</tt> parameter.</li>
+<li><tt class="docutils literal">obj.cacheable</tt> and <tt class="docutils literal">beresp.cacheable</tt> have been removed.
+Cacheability is now solely through the <tt class="docutils literal">beresp.ttl</tt> and
+<tt class="docutils literal">beresp.grace</tt> variables.</li>
+<li>setting the <tt class="docutils literal">obj.ttl</tt> or <tt class="docutils literal">beresp.ttl</tt> to zero now also sets the
+corresponding grace to zero.  If you want a non-zero grace, set
+grace after setting the TTL.</li>
+<li><tt class="docutils literal">return(pass)</tt> in <tt class="docutils literal">vcl_fetch</tt> has been renamed to
+<tt class="docutils literal">return(hit_for_pass)</tt> to make it clear that pass in <tt class="docutils literal">vcl_fetch</tt>
+and <tt class="docutils literal">vcl_recv</tt> are different beasts.</li>
+<li>Add actual purge support.  Doing <tt class="docutils literal">purge</tt> will remove an object and
+all its variants.</li>
+</ul>
+</div>
+<div class="section" id="libraries">
+<h2>Libraries</h2>
+<ul class="simple">
+<li><tt class="docutils literal">libvarnishapi</tt> has been overhauled and the API has been broken.
+Please see git commit logs and the support tools to understand
+what's been changed.</li>
+<li>Add functions to walk over all the available counters.  This is
+needed because some of the counter names might only be available at
+runtime.</li>
+<li>Limit the amount of time varnishapi waits for a shared memory log
+to appear before returning an error.</li>
+<li>All libraries but <tt class="docutils literal">libvarnishapi</tt> have been moved to a private
+directory as they are not for public consumption and have no ABI/API
+guarantees.</li>
+</ul>
+</div>
+<div class="section" id="id25">
+<h2>Other</h2>
+<ul class="simple">
+<li>Python is now required to build</li>
+<li>Varnish Cache is now consistently named Varnish Cache.</li>
+<li>The compilation process now looks for kqueue on NetBSD</li>
+<li>Make it possible to use a system jemalloc rather than the bundled
+version.</li>
+<li>The documentation has been improved all over and should now be in
+much better shape than before</li>
+</ul>
+</div>
+</div>
+<div class="system-messages section">
+<h1>Docutils System Messages</h1>
+<div class="system-message" id="id26">
+<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">changes.rst</tt>, line 43); <em><a href="#id27">backlink</a></em></p>
+Unknown target name: &quot;bug #996&quot;.</div>
+<div class="system-message" id="id28">
+<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">changes.rst</tt>, line 54); <em><a href="#id29">backlink</a></em></p>
+Duplicate target name, cannot be used as a unique reference: &quot;bug #1012&quot;.</div>
+<div class="system-message" id="id30">
+<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">changes.rst</tt>, line 58); <em><a href="#id31">backlink</a></em></p>
+Unknown target name: &quot;bug #1016&quot;.</div>
+</div>
+</div>
+</body>
+</html>
